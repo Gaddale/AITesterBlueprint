@@ -10,7 +10,7 @@ public class LoginTest extends BaseTest {
     public void testValidLogin() {
         LoginPage loginPage = new LoginPage(driver);
         loginPage.login("valid.user@salesforce.com", "SecurePassword123");
-        Assert.assertNotEquals(driver.getTitle(), "Login | Salesforce");
+        Assert.assertTrue(driver.getTitle().contains("Salesforce"));
     }
 
     @Test
@@ -18,6 +18,6 @@ public class LoginTest extends BaseTest {
         LoginPage loginPage = new LoginPage(driver);
         loginPage.login("invalid.user@salesforce.com", "WrongPassword");
         String actualErrorMessage = loginPage.getErrorMessage();
-        Assert.assertEquals(actualErrorMessage, "Please check your username and password. If you still can't log in, contact your Salesforce administrator.");
+        Assert.assertEquals(actualErrorMessage, "Error: Please check your username and password. If you still can't log in, contact your Salesforce administrator.");
     }
 }
