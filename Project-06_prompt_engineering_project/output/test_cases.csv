@@ -1,0 +1,12 @@
+TID,Category,Description,Pre-conditions,Steps,Expected,Priority
+TC_01,Functional,Verify successful login with valid credentials,"User is on the login page. User has valid credentials.","1. Enter valid email. 2. Enter valid password. 3. Click 'Sign in'.","User is redirected to the dashboard.",High
+TC_02,Negative,Verify login with invalid credentials,User is on the login page.,"1. Enter invalid email or password. 2. Click 'Sign in'.","User is not redirected to the dashboard. The error message 'Your email, password, IP address or location did not match' is displayed.",High
+TC_03,UI/Functional,Verify password visibility toggle,User is on the login page.,"1. Enter text in password field. 2. Click the visibility toggle (eye icon).","Password text becomes visible. Clicking it again hides the text.",Medium
+TC_04,UI/Functional,Verify 'Remember me' checkbox selection,User is on the login page.,"1. Click the 'Remember me' checkbox., 2. Proceed to login.",Checkbox state is toggled and persistent session logic is initiated.,Medium
+TC_05,Functional,Verify 'Sign in with Google' flow,User is on the login page.,"1. Click 'Sign in with Google' button.",User is directed to Google authentication flow.,Medium
+TC_06,Functional,Verify 'Sign in using SSO' flow,User is on the login page.,"1. Click 'Sign in using SSO' button.",User is directed to SSO authentication flow.,Medium
+TC_07,Functional,Verify 'Sign in with Passkey' flow,User is on the login page.,"1. Click 'Sign in with Passkey' button.",User is prompted for Passkey authentication.,Medium
+TC_08,Functional,Verify 'Forgot Password?' link navigation,User is on the login page.,"1. Click 'Forgot Password?' link.",User is navigated to password recovery flow.,Medium
+TC_09,Functional,Verify 'Start a FREE TRIAL' navigation,User is on the login page.,"1. Click 'Start a FREE TRIAL' link.",User is navigated to the free trial sign up flow.,Low
+TC_10,UI/Functional,Verify 'Privacy policy' link navigation,User is on the login page.,"1. Click 'Privacy policy' link.",User is navigated to the Privacy policy page.,Low
+TC_11,UI/Functional,Verify 'Terms' link navigation,User is on the login page.,"1. Click 'Terms' link.",User is navigated to the Terms page.,Low

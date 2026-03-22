@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Test Matrix Report</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 20px;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+th {
+  background-color: #f2f2f2;
+  text-align: left;
+}
+.summary {
+  background-color: #eef;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 30px;
+}
+.summary h2 {
+  margin-top: 0;
+}
+h2 {
+  color: #333;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Test Coverage Report</h1>
+
+<div class="summary">
+<h2>Test Case Summary</h2>
+<p><strong>Total Test Cases Generated:</strong> 11</p>
+<p><strong>Functional:</strong> 10</p>
+<p><strong>Negative:</strong> 1</p>
+<p><strong>Boundary:</strong> 0</p>
+<p><strong>Edge Cases:</strong> 0</p>
+</div>
+
+<h2>Test Case Matrix</h2>
+
+<table>
+<tr>
+<th>TID</th>
+<th>Category</th>
+<th>Description</th>
+<th>Priority</th>
+</tr>
+
+<tr><td>TC_01</td><td>Functional</td><td>Verify successful login with valid credentials</td><td>High</td></tr>
+<tr><td>TC_02</td><td>Negative</td><td>Verify login with invalid credentials</td><td>High</td></tr>
+<tr><td>TC_03</td><td>Functional (UI)</td><td>Verify password visibility toggle</td><td>Medium</td></tr>
+<tr><td>TC_04</td><td>Functional (UI)</td><td>Verify 'Remember me' checkbox selection</td><td>Medium</td></tr>
+<tr><td>TC_05</td><td>Functional</td><td>Verify 'Sign in with Google' flow</td><td>Medium</td></tr>
+<tr><td>TC_06</td><td>Functional</td><td>Verify 'Sign in using SSO' flow</td><td>Medium</td></tr>
+<tr><td>TC_07</td><td>Functional</td><td>Verify 'Sign in with Passkey' flow</td><td>Medium</td></tr>
+<tr><td>TC_08</td><td>Functional</td><td>Verify 'Forgot Password?' link navigation</td><td>Medium</td></tr>
+<tr><td>TC_09</td><td>Functional</td><td>Verify 'Start a FREE TRIAL' navigation</td><td>Low</td></tr>
+<tr><td>TC_10</td><td>Functional (UI)</td><td>Verify 'Privacy policy' link navigation</td><td>Low</td></tr>
+<tr><td>TC_11</td><td>Functional (UI)</td><td>Verify 'Terms' link navigation</td><td>Low</td></tr>
+
+</table>
+
+<h2>Requirement Traceability Matrix</h2>
+
+<table>
+<tr>
+<th>Requirement</th>
+<th>Covered Test Cases</th>
+</tr>
+
+<tr><td>Secure login (email/password) & Validation</td><td>TC_01, TC_02</td></tr>
+<tr><td>Password visibility</td><td>TC_03</td></tr>
+<tr><td>"Remember Me" persistent sessions</td><td>TC_04</td></tr>
+<tr><td>Third-party identity providers (Google, SSO)</td><td>TC_05, TC_06</td></tr>
+<tr><td>Alternate authentication methods (Passkey)</td><td>TC_07</td></tr>
+<tr><td>Password reset and recovery flow</td><td>TC_08</td></tr>
+<tr><td>Auxiliary link navigation (Trial, Policies)</td><td>TC_09, TC_10, TC_11</td></tr>
+
+</table>
+
+</body>
+</html>

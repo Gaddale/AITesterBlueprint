@@ -1,0 +1,1 @@
+Feature is the login page of the app.vwo.com. For valid login, it will go to dashboard. For invalid login, it will not go to dashboard. It will give you error message. 
