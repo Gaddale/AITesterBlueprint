@@ -1,0 +1,451 @@
+{
+  "name": "AutomatedLinkedInContent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -384,
+        -160
+      ],
+      "id": "5ff2518b-b135-4895-b69b-2fea52229cfd",
+      "name": "When chat message received",
+      "webhookId": "6729b1dd-dd11-4410-b2db-e054692166b2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "ou are a Senior QA architect and industry analyst writing in 2026.\n\nYour task is to generate ONLY ONE topic about:\n\n\"Software Testing in 2026\"\n\nConstraints:\n\n- Choose the single most impactful and future-defining shift.\n- Avoid generic themes unless you provide a deeply unique angle.\n- The topic must be bold, specific, and insight-driven.\n- It should reflect a real structural change in the industry (not surface-level trends).\n- The topic must be strong enough to anchor a keynote talk.\n- \n-  You can talk about Playwright AI agents, MCP, AI agents, n8n, LangFlow, RAG, MCP, Crew.ai, LLM evaluation  \nOutput format:\n\n1. Title (clear, bold, thought-provoking)\n2. One-sentence thesis (strong and definitive)\n3. Why this topic matters in 2026 (5–7 bullet points with reasoning)\nDo NOT generate multiple topics.\nDo NOT provide alternatives.\nCommit to one topic and defend it.\n\nDon't`To make a complex topic, keep it very simple.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -64,
+        -160
+      ],
+      "id": "32ea2b34-6a01-4c3c-bf90-67ca13b7a84b",
+      "name": "Topic Creator AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        80
+      ],
+      "id": "fbff6a05-7146-4e31-85f8-ac324819fbfc",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "BUkIH0rCNI3XyRr1",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"title\": \"example\",\n  \"rationale\": \"example\",\n  \"hook\": \"example\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        112,
+        48
+      ],
+      "id": "55634e52-c5cf-4d5a-add7-fb402947aeab",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        112,
+        208
+      ],
+      "id": "9c47a93e-ec24-47b0-9a57-7569689a3165",
+      "name": "Google Gemini Flash",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "tIaZWi2RnPPSSSqX",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1r_vhlq5mN_Xwte1ImxoLz_a9DQfuwzCsbMvuadnhFLg",
+          "mode": "list",
+          "cachedResultName": "Content Generated LinkedIn",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1r_vhlq5mN_Xwte1ImxoLz_a9DQfuwzCsbMvuadnhFLg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1r_vhlq5mN_Xwte1ImxoLz_a9DQfuwzCsbMvuadnhFLg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Title": "={{ $('Topic Creator AI Agent').item.json.output.title }}",
+            "Rational": "={{ $('Topic Creator AI Agent').item.json.output.rationale }}",
+            "Hook": "={{ $('Topic Creator AI Agent').item.json.output.hook }}",
+            "Status": "Draft",
+            "Date": "={{ $today }}",
+            "Content": "={{ $json.output.content }}",
+            "Image_Prompt": "={{ $json.output.image_prompt }}"
+          },
+          "matchingColumns": [
+            "Title"
+          ],
+          "schema": [
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Rational",
+              "displayName": "Rational",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Hook",
+              "displayName": "Hook",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Content",
+              "displayName": "Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Image_Prompt",
+              "displayName": "Image_Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        816,
+        -160
+      ],
+      "id": "61c55b7d-4675-40d8-8dba-a71b477c4896",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "C78MLk09fFgF6HAD",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a high-performing LinkedIn content strategist and B2B copywriter.\n\nInput:\n\n- Title: {{ $json.output.title }}\n- Rationale: {{ $json.output.rationale }}\n- Suggested Hook: {{ $json.output.hook }}\nYour task:\nCreate a high-engagement LinkedIn post based on the inputs.\n\nRequirements:\n\n1. Start with the provided hook (optimize it if necessary for stronger scroll-stopping impact).\n2. Expand the core idea clearly and persuasively.\n3. Maintain a strong narrative flow (problem → shift → insight → implication).\n4. Keep it practical and insight-driven (no fluff or generic motivation).\n5. Use short paragraphs for readability.\n6. Include 3–5 sharp bullet points if helpful.\n7. End with:\n    - A strong takeaway or forward-looking statement\n    - A conversation-driving question\n\nTone:\n\n- Authoritative but conversational\n- Insightful and slightly bold\n- Written for professionals in tech/QA/engineering leadership\nLength:\n\n- 150–300 words\nAfter the post, also provide:\n\nGenerate a Image_prompt also like below example:\n\n\nExample of Image_prompt: A high-quality cartoon-style digital illustration in a split-screen composition.\nThe image is divided vertically into two contrasting halves with a glowing separation line in the center.\n\nLeft side: chaotic, dark-toned environment with tangled wires, gears, warning signs, and visual clutter. Colors are muted (reds, greys, blacks).\nA cartoon male character with a beard, folded arms, slightly frustrated expression, standing in the middle of disorder.\n\nRight side: clean, futuristic, bright environment with glowing UI elements, soft gradients, and tech visuals (holographic panels, flow diagrams, circuits). Colors are warm and vibrant (gold, orange, blue highlights).\nThe same character appears confident and relaxed, arms folded, slight smile.\n\nCharacter style: modern vector cartoon, big expressive eyes, clean outlines, soft shading, slightly exaggerated proportions (LinkedIn-friendly professional cartoon avatar style).\n\nUI/Design elements: floating diagrams, boxes, arrows, minimal text labels, glassmorphism panels, neon glow effects.\n\nLighting: cinematic contrast — dark on left, warm glowing light on right, with a bright energy divide in the center.\n\nOverall style:\n\npolished vector illustration\nsemi-3D cartoon shading\ntech-themed infographic aesthetic\nhighly detailed but clean\nsuitable for LinkedIn post (professional + engaging)\n\nComposition: square format (1:1), balanced layout, character centered on both sides, background tells the story visually.\n\nRendering quality: ultra sharp, high resolution, vibrant colors, smooth gradients, soft shadows.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        400,
+        -160
+      ],
+      "id": "d4b7254b-5ea4-4b15-adda-64299f4f92bc",
+      "name": "Agent: Take topic & generate post"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        400,
+        64
+      ],
+      "id": "37c7bc7b-beb1-413a-81c0-3f1fb0db569b",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "BUkIH0rCNI3XyRr1",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"content\": \"Content of the generated LinkedIn post.\",\n\"image_prompt\": \"Image that the AI should generate.\"\n  \n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        48
+      ],
+      "id": "8e769846-a5de-4cce-a0b7-13bd533dfa02",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "={{ $('Agent: Take topic & generate post').item.json.output.image_prompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1008,
+        -160
+      ],
+      "id": "ea73890b-ca0b-4c0e-b6dd-e11173434fe2",
+      "name": "Generate an image",
+      "credentials": {
+        "openAiApi": {
+          "id": "MIBhSMTlJZLp0m8h",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "user": "lucky_sharma",
+        "platform": [
+          "linkedin"
+        ],
+        "title": "={{ $('Agent: Take topic & generate post').item.json.output.content }}",
+        "photos": "={{ $json.fileName }}"
+      },
+      "type": "n8n-nodes-upload-post.uploadPost",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        -160
+      ],
+      "id": "b543c7eb-08bc-482e-82cb-fb29b98226d5",
+      "name": "Upload photos",
+      "credentials": {
+        "uploadPostApi": {
+          "id": "IP83kTrZTnlWlvcN",
+          "name": "Upload Post account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 2
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "767af07e-91b5-480e-a9a4-dbc4b612131c",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Topic Creator AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Topic Creator AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Agent: Take topic & generate post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Topic Creator AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Topic Creator AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent: Take topic & generate post": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agent: Take topic & generate post",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agent: Take topic & generate post",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Upload photos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f9824372-6540-43b5-bb83-0abaac79f857",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "042334bf31197c9c5eb384ec8d054abd7eb948ff156775af5c579f4b30911f4b"
+  },
+  "id": "MB2vnmo1HFxQeXKF",
+  "tags": []
+}
