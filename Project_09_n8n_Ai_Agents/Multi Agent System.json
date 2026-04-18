@@ -1,0 +1,737 @@
+{
+  "name": "Multi Agent System",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -432,
+        -112
+      ],
+      "id": "bc117048-3c87-4ac2-b058-f695f76386c6",
+      "name": "When chat message received",
+      "webhookId": "e4c25831-ee88-4173-8b57-8f561cd234a5"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "issueKey": "VWO-6",
+        "additionalFields": {
+          "expand": "renderedFields"
+        }
+      },
+      "type": "n8n-nodes-base.jira",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -112
+      ],
+      "id": "a1bf4014-8856-4f1c-94a6-54a4148399ea",
+      "name": "Fetch Jira Ticket",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "yfZyfDYBQJ3eClWB",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "02bc964c-c7e9-4dc0-a796-0b99d14fa73f",
+              "name": "Key",
+              "value": "={{ $json.key }}",
+              "type": "string"
+            },
+            {
+              "id": "dbed9185-b180-4f6f-b6ae-a656eedb7a5f",
+              "name": "url",
+              "value": "={{ 'https://domain-bugs.atlassian.net/browse/' + $json.key }}",
+              "type": "string"
+            },
+            {
+              "id": "c1367153-c863-4fdd-951d-052b7bd1b4d7",
+              "name": "summary",
+              "value": "={{ $json.fields.summary }}",
+              "type": "string"
+            },
+            {
+              "id": "bf190004-bd82-44c6-a13b-277887a3b157",
+              "name": "description",
+              "value": "={{ $json.renderedFields.description }}",
+              "type": "string"
+            },
+            {
+              "id": "42faa5fb-aa36-4e27-9342-7838cfa1eec6",
+              "name": "issue_type",
+              "value": "={{ $json.fields.issuetype.name }}",
+              "type": "string"
+            },
+            {
+              "id": "793dd4d8-d44a-434d-b32a-44d87f7f5fe2",
+              "name": "status",
+              "value": "={{ $json.fields.status.name }}",
+              "type": "string"
+            },
+            {
+              "id": "19333e9d-38e7-4f11-abc2-9df9c13c927e",
+              "name": "priority",
+              "value": "={{ $json.fields.priority.name }}",
+              "type": "string"
+            },
+            {
+              "id": "754e9aee-2959-4a0c-8408-ef9d3480fb7e",
+              "name": "reporter",
+              "value": "={{ $json.fields.reporter.displayName }}",
+              "type": "string"
+            },
+            {
+              "id": "df05deb4-6139-47a6-8330-6fa378eab462",
+              "name": "assignee",
+              "value": "={{ $json.fields.assignee ? $json.fields.assignee.displayName : 'Unassigned' }}",
+              "type": "string"
+            },
+            {
+              "id": "0f6b9f6a-0059-456b-aa3f-53c11f6d7650",
+              "name": "labels",
+              "value": "={{ $json.fields.labels.join(', ') }}",
+              "type": "string"
+            },
+            {
+              "id": "c0709e42-df4c-49b4-afe1-47601391aa93",
+              "name": "components",
+              "value": "={{ $json.fields.components.map(c => c.name).join(', ') }}",
+              "type": "string"
+            },
+            {
+              "id": "1a7532d9-85f0-4060-a7fb-596ccdf520b3",
+              "name": "created",
+              "value": "={{ $json.fields.created }}",
+              "type": "string"
+            },
+            {
+              "id": "eed9330f-fba6-45e2-bbf1-b12156cf751a",
+              "name": "updated",
+              "value": "={{ $json.fields.updated }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        16,
+        -112
+      ],
+      "id": "8e879d7d-65d3-4d69-985e-01841f46ea55",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        240,
+        112
+      ],
+      "id": "c04201ca-5049-4b01-b771-f931be0b9001",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "UfjJgHIDgRiAROYv",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        448,
+        272
+      ],
+      "id": "177ab21a-26da-4f32-8051-9cde41c43b0e",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "0cOMypPozeTpnX6z",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        736,
+        112
+      ],
+      "id": "05b3ef93-bc6a-49d0-874c-34aed77c54a7",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "UfjJgHIDgRiAROYv",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        944,
+        272
+      ],
+      "id": "a3a9b142-ca77-42a7-8611-63a4017ba0e7",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "0cOMypPozeTpnX6z",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following Jira bug ticket and produce a structured analysis.\n\nTicket Key: {{ $json.Key }}\nSummary: {{ $json.summary }}\nIssue Type: {{ $json.issue_type }}\nPriority (Jira): {{ $json.priority }}\nStatus: {{ $json.status }}\nComponents: {{ $json.components }}\nLabels: {{ $json.labels }}\n\nDescription:\n{{ $json.description }}\n\nReturn ONLY the JSON with EXACT fields defined in schema.\nDo NOT add extra fields like summary, severity, etc.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a Senior QA Analyst specializing in bug triage and test scope analysis.\n\nYour job: read the bug ticket and produce a structured analysis that a Test Plan Writer will use to create a full test plan.\n\nWhen determining severity:\n- Look for an explicit \"Severity (Reporter): X\" line in the description and use it\n- Otherwise infer from impact (data loss, blocker = Critical; broken core feature = High; minor UI = Low)\n\nWhen determining business impact, think about: revenue impact, user trust, data integrity, regulatory/compliance risk.\n\nFor affected_areas, list specific modules/features touched by the bug.\nFor risk_areas, list adjacent features that could also be broken or need regression testing.\nFor test_scope, identify the categories of testing needed (functional, regression, boundary, negative, integration, performance, security).\n\nBe specific and concise. No fluff."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        272,
+        -112
+      ],
+      "id": "c40c2ff8-1dd8-4206-945e-e3a747f4a6da",
+      "name": "AI Analyst"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write a professional Test Plan document based on the following bug analysis.\n\nTICKET INFO:\nKey: {{ $json.output.ticket_key }}\nSummary: {{ $('Edit Fields').item.json.summary }}\nPriority: {{ $json.output.priority_for_testing }}\nReporter: {{ $('Edit Fields').item.json.reporter }}\nDescription: {{ $('Edit Fields').item.json.description }}\n\nANALYST ASSESSMENT:\n{{ JSON.stringify($('AI Analyst').item.json.output, null, 2) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a Senior QA Test Plan Writer. You write clear, professional test plans that follow industry standards.\n\nGiven a bug ticket and an analyst's assessment, produce a complete test plan with these sections:\n\n1. INTRODUCTION: Brief overview of what is being tested and why\n2. SCOPE: In-scope and out-of-scope items\n3. TEST OBJECTIVES: What this test plan aims to verify\n4. SEVERITY & PRIORITY ASSESSMENT: Based on analyst input, explain the severity, priority, business impact, and urgency\n5. TEST STRATEGY: Types of testing to be performed (functional, regression, boundary, negative, etc.)\n6. ENTRY CRITERIA: What must be true before testing starts\n7. EXIT CRITERIA: What must be true before testing is considered complete\n8. ENVIRONMENT: Browser, OS, any specific setup needed (extract from the ticket description)\n9. RISKS & MITIGATIONS: What could go wrong, and how to handle it\n10. DELIVERABLES: What artifacts will be produced (test cases, reports, etc.)\n\nWrite in professional but concise language. No filler. Every sentence should add value.\nUse the actual ticket details — do not make up information not present in the ticket or analysis."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        768,
+        -112
+      ],
+      "id": "430a7f83-be48-4f07-a3bc-2c9712f43fed",
+      "name": "AI Test Plan Writer"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-safeguard-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        112
+      ],
+      "id": "895bc2b2-7dc2-4e81-9d1b-dd09786f5ac4",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "UfjJgHIDgRiAROYv",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1456,
+        272
+      ],
+      "id": "6da3e870-de79-498f-b766-564f490d4845",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "0cOMypPozeTpnX6z",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.test_cases",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        -112
+      ],
+      "id": "e3ccd312-3b7f-47a8-9b8a-a3d707bfa9a8",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1952,
+        -112
+      ],
+      "id": "ad710f8f-76f3-4ffd-bf7c-ef80f98e2c17",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "name": "={{ 'TestCases_' + $('Fetch Jira Ticket').item.json.id + '.xlsx' }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1-QyvwTzo1qOnrDDCHMxBpRsr7DLS1dbR",
+          "mode": "list",
+          "cachedResultName": "QA Test Plans",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1-QyvwTzo1qOnrDDCHMxBpRsr7DLS1dbR"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2176,
+        -112
+      ],
+      "id": "ea6e8251-72db-4812-8280-017e438b96f0",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "JatXkpiqNO2B0X8m",
+          "name": "Google Drive OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "=gaddale.ngaraja@gmail.com",
+        "subject": "={{ 'Test Plan & Cases Ready: ' + $('Fetch Jira Ticket').item.json.id + ' - ' + $('Fetch Jira Ticket').item.json.fields.summary }}",
+        "message": "=Hi Team,<br><br>\n\nThe AI-generated Test Plan and Test Cases are ready for review.<br><br>\n\n<b>Ticket:</b>{{ $('AI Test Plan Writer').item.json.output.ticket_key }} <br>\n<b>Summary:</b>{{$('Fetch Jira Ticket').item.json.fields.summary }}<br>\n<b>Priority:</b>{{ $('AI Analyst').item.json.output.priority_for_testing }} <br>\n<b>Status:</b><{{ $('Edit Fields').item.json.status }}br><br>\n\n<b>Severity Assessment:</b> {{ $('AI Analyst').item.json.output.severity_assessment.level }}<br>\n<b>Business Impact:</b> {{ $('AI Analyst').item.json.output.business_impact }}<br><br>\n\n<b>Test Cases:</b> Excel file uploaded to Google Drive.<br>\n<b>Google Drive Link:</b> {{ $json.webViewLink }}<br><br>\n\nPlease review the test cases and update status as you execute them.<br><br>\n\nRegards,<br>\nQA Automation Bot",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2400,
+        -112
+      ],
+      "id": "e0734284-f576-4e32-91da-7a1739675e31",
+      "name": "Send a message",
+      "webhookId": "f5f83612-5744-4c58-ae8b-a23bf9d3bef8",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "8F0ArDPBrUxMorHY",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate detailed test cases for the following bug ticket based on the test plan and analyst assessment.\n\nTICKET:\nKey: {{ $json.output.ticket_key }}\nSummary: {{ $('Fetch Jira Ticket').item.json.fields.summary }}\nDescription: {{ $('Fetch Jira Ticket').item.json.fields.description }}\n\nANALYST ASSESSMENT:\n{{ JSON.stringify($('AI Analyst').item.json.output, null, 2) }}\n\nTEST PLAN:\n{{ JSON.stringify($('AI Test Plan Writer').item.json.output, null, 2) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a Senior QA Engineer who writes detailed, executable test cases.\n\nRules:\n- Each test case must be independently executable — no dependencies between test cases\n- Steps must be specific and actionable (not vague like \"verify it works\")\n- Include exact test data values where possible (item counts, discount code, expected amounts)\n- Cover: positive flows, negative flows, boundary conditions, edge cases, and regression scenarios\n- Use the test_scope and affected_areas from the analyst assessment to ensure full coverage\n- Match the estimated_test_cases_needed count from the analyst (approximately)\n- Every test case must have a clear expected result that is objectively verifiable\n\nFor severity of each test case:\n- Critical: Core bug reproduction, data integrity\n- High: Closely related functionality\n- Medium: Edge cases, boundary conditions\n- Low: UI, cosmetic, minor regression"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1264,
+        -112
+      ],
+      "id": "bdbc70c5-144f-4694-9dae-e67f1459f38e",
+      "name": "AI TestCase generator"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "196eb332-30c9-4b6c-96cd-7f1c66bee52d",
+              "name": "=TC_ID",
+              "value": "={{ $json.tc_id }}",
+              "type": "string"
+            },
+            {
+              "id": "64734413-c4ef-4846-ac5e-86230610a5b2",
+              "name": "=Title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "ca78d657-cd99-4dff-a6b8-7139a74a771f",
+              "name": "=Category",
+              "value": "={{ $json.category }}",
+              "type": "string"
+            },
+            {
+              "id": "1f36d179-5f56-476d-a501-f2fff2c155e9",
+              "name": "=Preconditions",
+              "value": "={{ $json.preconditions }}",
+              "type": "string"
+            },
+            {
+              "id": "80152681-0633-46ef-b671-bb8b12c4f44d",
+              "name": "=Test_Data",
+              "value": "={{ $json.test_data }}",
+              "type": "string"
+            },
+            {
+              "id": "1b70aec6-0f52-4756-96d7-a4ec1fcafc71",
+              "name": "=Steps",
+              "value": "={{ $json.steps.join('\\n') }}",
+              "type": "string"
+            },
+            {
+              "id": "f005d218-9d23-47e3-857d-3a19930d390b",
+              "name": "=Expected_Result",
+              "value": "={{ $json.expected_result }}",
+              "type": "string"
+            },
+            {
+              "id": "e1de6a4e-961f-4ddf-bc0e-6d7f900ab20f",
+              "name": "=Actual_Result",
+              "value": "={{ $json.actual_result }}",
+              "type": "string"
+            },
+            {
+              "id": "6334468f-74e5-42f3-9235-e863a6e11b32",
+              "name": "=Status",
+              "value": "={{ $json.status }}",
+              "type": "string"
+            },
+            {
+              "id": "bfc50ff5-d284-4532-81e0-f03282fdc893",
+              "name": "=Notes",
+              "value": "={{ $json.notes }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1760,
+        -112
+      ],
+      "id": "29cd19d8-8dde-48cb-9bf2-accd910a27a1",
+      "name": "Format to excel"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"ticket_key\": { \"type\": \"string\" },\n    \"severity_assessment\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"level\": { \"type\": \"string\" },\n        \"reasoning\": { \"type\": \"string\" }\n      },\n      \"required\": [\"level\", \"reasoning\"]\n    },\n    \"business_impact\": { \"type\": \"string\" },\n    \"affected_areas\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    },\n    \"risk_areas\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    },\n    \"test_scope\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" }\n    },\n    \"priority_for_testing\": { \"type\": \"string\" },\n    \"estimated_test_cases_needed\": { \"type\": \"number\" }\n  },\n  \"required\": [\n    \"ticket_key\",\n    \"severity_assessment\",\n    \"business_impact\"\n  ],\n  \"additionalProperties\": false\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        112
+      ],
+      "id": "889114b4-f3a8-478a-a3cb-b8db8b833c8d",
+      "name": "Analyst Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"ticket_key\": \"VWO-6\",\n  \"test_plan_title\": \"Test Plan: Shopping Cart Total Shows $0.00 After Applying Discount Code\",\n  \"introduction\": \"This test plan covers verification of the shopping cart total calculation when discount codes are applied...\",\n  \"scope\": {\n    \"in_scope\": [\n      \"Discount code application on carts with 3+ items\",\n      \"Cart total calculation after discount\",\n      \"Verification across item count boundaries (1, 2, 3, 4+)\"\n    ],\n    \"out_of_scope\": [\n      \"Payment gateway integration\",\n      \"Discount code creation/management in admin\"\n    ]\n  },\n  \"test_objectives\": [\n    \"Verify cart total correctly reflects 20% discount for 3+ items\",\n    \"Confirm no regression on 1-2 item carts\",\n    \"Validate edge cases around the 3-item threshold\"\n  ],\n  \"severity_priority\": {\n    \"severity\": \"High\",\n    \"priority\": \"P1\",\n    \"business_impact\": \"Direct revenue loss and customer trust erosion\",\n    \"urgency\": \"Immediate — block v2.4.1 release\"\n  },\n  \"test_strategy\": [\n    \"Functional testing of discount code SAVE20\",\n    \"Boundary testing at item count thresholds\",\n    \"Regression testing on checkout flow\",\n    \"Negative testing with invalid/expired codes\"\n  ],\n  \"entry_criteria\": [\n    \"Bug fix deployed to staging/test environment\",\n    \"Test data with various item counts available\",\n    \"Discount code SAVE20 active in test environment\"\n  ],\n  \"exit_criteria\": [\n    \"All test cases executed with pass rate >= 95%\",\n    \"No Critical or High severity defects open\",\n    \"Cart total displays correctly for all item count scenarios\"\n  ],\n  \"environment\": {\n    \"browser\": \"Chrome 120\",\n    \"os\": \"Windows 11\",\n    \"env\": \"Production (reproduce), Staging (verify fix)\"\n  },\n  \"risks_and_mitigations\": [\n    {\n      \"risk\": \"Bug may affect other discount types not tested\",\n      \"mitigation\": \"Extend test cases to cover fixed-amount and BOGO codes\"\n    }\n  ],\n  \"deliverables\": [\n    \"Test case document (Excel)\",\n    \"Test execution report\",\n    \"Bug verification sign-off\"\n  ]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        864,
+        112
+      ],
+      "id": "d2f3ac16-bd44-4436-890b-40026871be96",
+      "name": "Test Plan Output Parser"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"ticket_key\": \"VWO-6\",\n  \"total_test_cases\": 14,\n  \"test_cases\": [\n    {\n      \"tc_id\": \"TC_VWO6_001\",\n      \"title\": \"Verify cart total with SAVE20 on 3 items (exact threshold)\",\n      \"category\": \"Boundary\",\n      \"severity\": \"Critical\",\n      \"preconditions\": \"User logged in, cart empty, SAVE20 code active\",\n      \"test_data\": \"3 items totaling $75.00, discount code SAVE20\",\n      \"steps\": [\n        \"Add Item A ($25.00) to cart\",\n        \"Add Item B ($25.00) to cart\",\n        \"Add Item C ($25.00) to cart\",\n        \"Apply discount code SAVE20\",\n        \"Observe the cart total\"\n      ],\n      \"expected_result\": \"Cart total displays $60.00 (original $75.00 minus 20% = $15.00 discount)\",\n      \"actual_result\": \"\",\n      \"status\": \"Not Executed\",\n      \"notes\": \"This is the exact bug reproduction scenario with minimum qualifying items\"\n    },\n    {\n      \"tc_id\": \"TC_VWO6_002\",\n      \"title\": \"Verify cart total with SAVE20 on 2 items (below threshold)\",\n      \"category\": \"Boundary\",\n      \"severity\": \"High\",\n      \"preconditions\": \"User logged in, cart empty, SAVE20 code active\",\n      \"test_data\": \"2 items totaling $60.00, discount code SAVE20\",\n      \"steps\": [\n        \"Add Item A ($30.00) to cart\",\n        \"Add Item B ($30.00) to cart\",\n        \"Apply discount code SAVE20\",\n        \"Observe the cart total\"\n      ],\n      \"expected_result\": \"Cart total displays $48.00 (20% off $60.00). This scenario reportedly works correctly.\",\n      \"actual_result\": \"\",\n      \"status\": \"Not Executed\",\n      \"notes\": \"Confirm the working scenario still works — regression check\"\n    }\n  ]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1360,
+        112
+      ],
+      "id": "8c04a70a-e912-4c8e-8135-613fdfa5d679",
+      "name": "Test Case Output Parser"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Fetch Jira Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Jira Ticket": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Analyst",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyst Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Test Plan Writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Test Plan Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Analyst": {
+      "main": [
+        [
+          {
+            "node": "AI Test Plan Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Test Plan Writer": {
+      "main": [
+        [
+          {
+            "node": "AI TestCase generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI TestCase generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Test Case Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Format to excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI TestCase generator": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format to excel": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyst Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Analyst",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Plan Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Test Plan Writer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Case Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI TestCase generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f4b8cd84-6287-440b-bb43-912a086f0b02",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c6ad6cf5baca4d480789431dbe92fa1044a3cfbb365295cf74239de63e14b082"
+  },
+  "id": "MxPTAdjbxAqOMk5l",
+  "tags": []
+}
