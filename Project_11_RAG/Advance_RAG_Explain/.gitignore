@@ -1,0 +1,8 @@
+qdrant_db/
+uploads/
+chunks.json
+bm25.pkl
+.env
+__pycache__/
+*.pyc
+.DS_Store

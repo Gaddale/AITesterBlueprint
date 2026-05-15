@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Advanced RAG Explorer — Test Cases</title>
+<style>
+/* ── Reset & Claude Theme ─────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:       #1C1917;
+  --bg1:      #231E1B;
+  --bg2:      #2C2520;
+  --bg3:      #3A312B;
+  --border:   #4A3F38;
+  --border2:  #5C4F46;
+  --orange:   #D97757;
+  --orange2:  #E8926E;
+  --orange-d: rgba(217,119,87,.18);
+  --orange-g: rgba(217,119,87,.08);
+  --amber:    #F59E0B;
+  --green:    #10B981;
+  --blue:     #60A5FA;
+  --purple:   #A78BFA;
+  --red:      #F87171;
+  --txt:      #F5F5F4;
+  --txt2:     #C7BAB4;
+  --txt3:     #A8A29E;
+  --txt4:     #78716C;
+  --glow-o:   0 0 24px rgba(217,119,87,.3);
+  --glow-g:   0 0 20px rgba(16,185,129,.25);
+  --glow-b:   0 0 20px rgba(96,165,250,.25);
+  --glow-p:   0 0 20px rgba(167,139,250,.25);
+}
+html{font-size:14px}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg1)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+button{cursor:pointer;font-family:inherit}
+input,select,textarea{font-family:inherit}
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+.hdr{
+  background:linear-gradient(135deg,#1C1208 0%,#241810 40%,#1C1208 100%);
+  border-bottom:1px solid var(--border);
+  padding:14px 24px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.hdr-logo{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--orange),#B85C34);
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+  box-shadow:var(--glow-o);
+}
+.hdr-title h1{font-size:1.1rem;font-weight:700;color:var(--txt)}
+.hdr-title h1 em{font-style:normal;color:var(--orange)}
+.hdr-title p{font-size:.72rem;color:var(--txt3);margin-top:1px}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 9px;
+  border-radius:20px;font-size:.68rem;font-weight:600;
+}
+.b-o{background:var(--orange-d);color:var(--orange);border:1px solid rgba(217,119,87,.3)}
+.b-g{background:rgba(16,185,129,.1);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.b-b{background:rgba(96,165,250,.1);color:var(--blue);border:1px solid rgba(96,165,250,.3)}
+.b-p{background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.3)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.pulse{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── Upload View ───────────────────────────────────────────────────────── */
+#upload-view{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 66px);padding:32px}
+.upload-card{
+  background:var(--bg1);border:2px dashed var(--border2);border-radius:20px;
+  padding:52px 60px;max-width:600px;width:100%;text-align:center;
+  transition:all .25s;cursor:pointer;
+}
+.upload-card:hover,.upload-card.drag-over{border-color:var(--orange);background:var(--orange-g);box-shadow:var(--glow-o)}
+.upload-icon{font-size:3.5rem;margin-bottom:18px;display:block}
+.upload-card h2{font-size:1.3rem;font-weight:700;margin-bottom:8px}
+.upload-card h2 span{color:var(--orange)}
+.upload-card p{color:var(--txt3);font-size:.85rem;line-height:1.6;margin-bottom:20px}
+.btn-upload{
+  background:linear-gradient(135deg,var(--orange),#B85C34);
+  border:none;color:#fff;padding:12px 28px;border-radius:12px;
+  font-size:.9rem;font-weight:700;transition:all .2s;
+}
+.btn-upload:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:var(--glow-o)}
+.formats{display:flex;gap:8px;justify-content:center;margin-top:16px}
+.fmt-tag{font-size:.65rem;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--txt3)}
+.stack-pills{display:flex;gap:6px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+.sp{font-size:.65rem;padding:3px 8px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);color:var(--txt3)}
+
+/* ── Config View ───────────────────────────────────────────────────────── */
+#config-view{padding:28px 32px;max-width:900px;margin:0 auto}
+.file-banner{
+  background:var(--bg1);border:1px solid var(--border);border-radius:14px;
+  padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:20px;
+}
+.file-icon{font-size:1.8rem}
+.file-info h3{font-size:.9rem;font-weight:700;color:var(--txt)}
+.file-info p{font-size:.75rem;color:var(--txt3);margin-top:2px}
+.section-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);margin-bottom:10px}
+.col-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.col-chip{
+  display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;padding:6px 12px;font-size:.78rem;transition:all .2s;cursor:pointer;
+}
+.col-chip:hover{border-color:var(--border2)}
+.col-chip.selected{background:var(--orange-d);border-color:var(--orange);color:var(--orange)}
+.col-chip input[type=checkbox]{accent-color:var(--orange)}
+.chunk-sliders{display:flex;gap:20px;margin-bottom:20px}
+.slider-group{flex:1;background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.slider-group label{font-size:.72rem;color:var(--txt3);display:flex;justify-content:space-between;margin-bottom:8px}
+.slider-group label span{color:var(--orange);font-weight:700}
+.slider-group input[type=range]{width:100%;accent-color:var(--orange)}
+.preview-table{width:100%;border-collapse:collapse;font-size:.72rem;margin-bottom:20px;max-height:180px;overflow:auto;display:block}
+.preview-table th{background:var(--bg2);color:var(--txt3);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);position:sticky;top:0}
+.preview-table td{padding:5px 10px;border-bottom:1px solid var(--bg2);color:var(--txt2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preview-table tr:hover td{background:var(--bg2)}
+.action-row{display:flex;gap:10px;align-items:center}
+.btn-ingest{
+  background:linear-gradient(135deg,var(--orange),#B85C34);border:none;color:#fff;
+  padding:13px 32px;border-radius:12px;font-size:.9rem;font-weight:700;transition:all .2s;
+}
+.btn-ingest:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:var(--glow-o)}
+.btn-back{background:transparent;border:1px solid var(--border);color:var(--txt2);border-radius:10px;padding:10px 18px;font-size:.8rem;transition:all .2s}
+.btn-back:hover{border-color:var(--border2)}
+
+/* ── Ingestion Progress View ───────────────────────────────────────────── */
+#ingest-view{padding:32px;max-width:700px;margin:0 auto}
+.ingest-header{text-align:center;margin-bottom:32px}
+.ingest-header h2{font-size:1.3rem;font-weight:700;margin-bottom:6px}
+.ingest-header h2 span{color:var(--orange)}
+.ingest-header p{color:var(--txt3);font-size:.82rem}
+.ingest-steps{display:flex;flex-direction:column;gap:10px}
+.istep{
+  background:var(--bg1);border:1px solid var(--border);border-radius:14px;
+  padding:16px 18px;transition:all .3s;
+}
+.istep.run{border-color:var(--orange);background:var(--orange-g);box-shadow:var(--glow-o)}
+.istep.ok{border-color:var(--green);background:rgba(16,185,129,.06)}
+.istep.err{border-color:var(--red);background:rgba(248,113,113,.06)}
+.istep-top{display:flex;align-items:center;gap:12px}
+.istep-icon{font-size:1.4rem;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border-radius:10px;flex-shrink:0}
+.istep.run .istep-icon{background:var(--orange-d)}
+.istep.ok .istep-icon{background:rgba(16,185,129,.15)}
+.istep-info h3{font-size:.85rem;font-weight:700;color:var(--txt)}
+.istep-info p{font-size:.72rem;color:var(--txt3);margin-top:2px}
+.istep-status{margin-left:auto;font-size:.7rem;padding:3px 9px;border-radius:8px}
+.istep.run .istep-status{background:var(--orange-d);color:var(--orange)}
+.istep.ok  .istep-status{background:rgba(16,185,129,.15);color:var(--green)}
+.istep-bar{height:4px;background:var(--bg3);border-radius:2px;margin-top:12px;overflow:hidden;display:none}
+.istep.run .istep-bar{display:block}
+.istep-bar-fill{height:100%;background:var(--orange);border-radius:2px;transition:width .4s;width:0}
+
+/* ── Explorer View ─────────────────────────────────────────────────────── */
+#explorer-view{display:flex;flex-direction:column;height:calc(100vh - 66px)}
+
+/* Pipeline */
+.pipeline{background:var(--bg1);border-bottom:1px solid var(--border);padding:14px 24px}
+.pipeline-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--txt4);margin-bottom:10px}
+.pipe-nodes{display:flex;align-items:center;gap:0;flex-wrap:nowrap;overflow-x:auto}
+.pn{
+  display:flex;flex-direction:column;align-items:center;background:var(--bg2);
+  border:1px solid var(--border);border-radius:10px;padding:7px 12px;min-width:90px;
+  transition:all .3s;flex-shrink:0;
+}
+.pn .pi{font-size:1.1rem}
+.pn .pl{font-size:.62rem;color:var(--txt3);margin-top:3px;text-align:center;line-height:1.3}
+.pn.active{border-color:var(--orange);background:var(--orange-d);box-shadow:var(--glow-o)}
+.pn.active .pl{color:var(--orange)}
+.pn.done{border-color:var(--green);background:rgba(16,185,129,.07)}
+.pn.done .pl{color:var(--green)}
+.pa{color:var(--border2);padding:0 5px;font-size:1rem;flex-shrink:0;transition:color .3s}
+.pa.lit{color:var(--orange)}
+
+/* Stats bar */
+.sbar{
+  display:flex;border-bottom:1px solid var(--border);background:var(--bg1);
+}
+.sitem{flex:1;padding:8px 18px;border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sitem:last-child{border-right:none}
+.slbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--txt4)}
+.sval{font-size:.88rem;font-weight:700;color:var(--txt);margin-top:1px}
+.sval.orange{color:var(--orange)}
+.sval.green{color:var(--green)}
+.sval.blue{color:var(--blue)}
+.sval.purple{color:var(--purple)}
+
+/* Main layout */
+.main{display:grid;grid-template-columns:400px 1fr;grid-template-rows:1fr;flex:1;min-height:0;overflow:hidden}
+
+/* ── Left: Chunk Explorer ──────────────────────────────────────────────── */
+.lp{border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg1);min-height:0;overflow:hidden}
+.lp-hdr{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.lp-hdr h2{font-size:.82rem;font-weight:700}
+.lp-cnt{font-size:.68rem;background:var(--bg2);padding:2px 8px;border-radius:10px;color:var(--txt3)}
+.lp-search input{
+  width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--txt);
+  border-radius:8px;padding:7px 12px;font-size:.78rem;outline:none;transition:border-color .2s;
+}
+.lp-search{padding:8px 10px;border-bottom:1px solid var(--border)}
+.lp-search input:focus{border-color:var(--orange)}
+.overlap-legend{
+  display:flex;gap:10px;padding:6px 12px;border-bottom:1px solid var(--border);
+  font-size:.63rem;color:var(--txt4);
+}
+.ov-item{display:flex;align-items:center;gap:5px}
+.ov-dot{width:10px;height:10px;border-radius:3px}
+.ov-in{background:rgba(245,158,11,.35)}
+.ov-out{background:rgba(167,139,250,.35)}
+.chunk-list{overflow-y:auto;flex:1;padding:8px;display:flex;flex-direction:column;gap:5px}
+
+.cc{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;cursor:pointer;transition:all .22s;
+}
+.cc:hover{border-color:var(--border2);background:var(--bg3)}
+.cc.hl1{border-color:var(--green);background:rgba(16,185,129,.07);box-shadow:var(--glow-g)}
+.cc.hl2{border-color:var(--orange);background:var(--orange-g);box-shadow:var(--glow-o)}
+.cc.hl3{border-color:var(--blue);background:rgba(96,165,250,.07);box-shadow:var(--glow-b)}
+.cc.hl4,.cc.hl5{border-color:var(--purple);background:rgba(167,139,250,.07);box-shadow:var(--glow-p)}
+
+.cc-meta{display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap}
+.cc-id{font-size:.62rem;font-weight:700;color:var(--orange);font-family:monospace}
+.cc-row{font-size:.6rem;background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.25);padding:1px 6px;border-radius:6px}
+.cc-rank{font-size:.6rem;padding:1px 7px;border-radius:6px;font-weight:700;margin-left:auto}
+.rank-1{background:rgba(16,185,129,.2);color:var(--green)}
+.rank-2{background:var(--orange-d);color:var(--orange)}
+.rank-3{background:rgba(96,165,250,.2);color:var(--blue)}
+.rank-4,.rank-5{background:rgba(167,139,250,.2);color:var(--purple)}
+
+.simbar{margin-bottom:5px}
+.simbar-labels{display:flex;justify-content:space-between;font-size:.6rem;color:var(--txt4);margin-bottom:2px}
+.simbar-bg{height:3px;background:var(--bg3);border-radius:2px}
+.simbar-fill{height:3px;border-radius:2px;transition:width .5s}
+.fill-1{background:var(--green)}.fill-2{background:var(--orange)}
+.fill-3{background:var(--blue)}.fill-4,.fill-5{background:var(--purple)}
+
+.cc-text{font-size:.71rem;color:var(--txt2);line-height:1.5;margin-bottom:6px}
+.cc-text.collapsed{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ov-in-txt{background:rgba(245,158,11,.22);border-radius:3px;padding:0 2px}
+.ov-out-txt{background:rgba(167,139,250,.22);border-radius:3px;padding:0 2px}
+.cc-footer{display:flex;gap:8px;font-size:.6rem;color:var(--txt4)}
+.multi-chip{font-size:.58rem;background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:1px 5px;color:var(--txt3)}
+
+/* ── Right: Chat ───────────────────────────────────────────────────────── */
+.rp{display:flex;flex-direction:column;background:var(--bg);min-height:0;overflow:hidden}
+.chat-msgs{flex:1;overflow-y:auto;min-height:0;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+
+/* Empty chat state */
+.chat-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:14px;color:var(--txt4);text-align:center}
+.chat-empty .ei{font-size:3rem}
+.chat-empty p{font-size:.8rem;max-width:340px;line-height:1.6;color:var(--txt3)}
+.eg-queries{display:flex;flex-direction:column;gap:6px;margin-top:4px;width:100%;max-width:400px}
+.eq{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:.75rem;color:var(--txt2);cursor:pointer;text-align:left;transition:all .2s}
+.eq:hover{border-color:var(--orange);color:var(--orange)}
+
+/* Chat bubbles */
+.msg-user{display:flex;justify-content:flex-end}
+.msg-user .bubble{background:linear-gradient(135deg,var(--orange),#B85C34);color:#fff;padding:10px 14px;border-radius:14px 14px 4px 14px;font-size:.82rem;max-width:70%;line-height:1.5}
+.msg-bot{display:flex;flex-direction:column;gap:8px}
+.msg-bot .bot-avatar{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--orange),#B85C34);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.msg-bot-row{display:flex;align-items:flex-start;gap:10px}
+.msg-bot .bubble{background:var(--bg1);border:1px solid var(--border);color:var(--txt);padding:12px 14px;border-radius:4px 14px 14px 14px;font-size:.82rem;max-width:100%;line-height:1.6;white-space:pre-wrap;flex:1}
+
+/* Step panels */
+.steps-wrap{display:flex;flex-direction:column;gap:6px}
+.sp{background:var(--bg1);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s}
+.sp-hdr{display:flex;align-items:center;gap:8px;padding:9px 13px;cursor:pointer;user-select:none}
+.sp-hdr:hover{background:var(--bg2)}
+.sp-icon{font-size:.95rem;width:24px;text-align:center}
+.sp-name{font-size:.75rem;font-weight:700;color:var(--txt2)}
+.sp-meta{font-size:.65rem;color:var(--txt4);margin-left:auto;margin-right:8px}
+.sp-arr{font-size:.7rem;color:var(--txt4);transition:transform .2s}
+.sp.open .sp-arr{transform:rotate(180deg)}
+.sp-body{display:none;padding:10px 13px;border-top:1px solid var(--border);background:var(--bg)}
+.sp.open .sp-body{display:block}
+
+/* Step colors */
+.sp.s-embed{border-left:3px solid var(--blue)}
+.sp.s-dense{border-left:3px solid var(--orange)}
+.sp.s-bm25{border-left:3px solid var(--amber)}
+.sp.s-rrf{border-left:3px solid var(--purple)}
+.sp.s-rerank{border-left:3px solid var(--green)}
+.sp.s-llm{border-left:3px solid var(--red)}
+
+.result-row{display:flex;align-items:baseline;gap:8px;padding:4px 0;border-bottom:1px solid var(--bg2);font-size:.71rem}
+.result-row:last-child{border-bottom:none}
+.rr-rank{width:18px;text-align:right;color:var(--txt4);flex-shrink:0}
+.rr-id{font-family:monospace;color:var(--orange);flex-shrink:0;font-size:.65rem}
+.rr-score{font-weight:700;flex-shrink:0}
+.rr-text{color:var(--txt3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.rr-row{color:var(--txt4);font-size:.62rem;flex-shrink:0}
+
+.rerank-compare{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rk-col h4{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px}
+.rk-col.before h4{color:var(--txt4)}
+.rk-col.after h4{color:var(--green)}
+.rk-item{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.68rem;color:var(--txt2)}
+.rk-num{font-weight:700;color:var(--txt4);width:16px;text-align:right}
+.rk-cid{font-family:monospace;color:var(--orange);font-size:.62rem}
+.rk-s{font-size:.62rem;color:var(--txt4)}
+
+.timing-strip{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--bg2)}
+.ti{font-size:.62rem;color:var(--txt4)}.ti b{color:var(--txt2)}
+
+/* Loading */
+.thinking{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg1);border:1px solid var(--border);border-radius:10px}
+.ld-steps{display:flex;flex-direction:column;gap:5px}
+.ld-step{display:flex;align-items:center;gap:7px;font-size:.73rem;color:var(--txt4)}
+.ld-step.cur{color:var(--orange)}.ld-step.done{color:var(--green)}
+.spin{width:22px;height:22px;border:2px solid var(--border2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Chat input */
+.chat-input-area{padding:12px 16px;border-top:1px solid var(--border);background:var(--bg1);flex-shrink:0}
+.ci-row{display:flex;gap:8px;align-items:flex-end}
+.ci-wrap{flex:1}
+.ci-wrap textarea{
+  width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--txt);
+  border-radius:10px;padding:10px 13px;font-size:.82rem;resize:none;outline:none;
+  transition:border-color .2s;min-height:52px;max-height:140px;
+}
+.ci-wrap textarea:focus{border-color:var(--orange)}
+.ci-controls{display:flex;flex-direction:column;gap:6px}
+.ci-selects{display:flex;gap:5px}
+.ci-selects select{background:var(--bg2);border:1px solid var(--border);color:var(--txt2);border-radius:7px;padding:5px 7px;font-size:.68rem;outline:none}
+.btn-send{
+  background:linear-gradient(135deg,var(--orange),#B85C34);border:none;color:#fff;
+  border-radius:10px;padding:11px 18px;font-size:.82rem;font-weight:700;transition:all .2s;white-space:nowrap;
+}
+.btn-send:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:var(--glow-o)}
+.btn-send:disabled{opacity:.5;transform:none;cursor:not-allowed}
+.btn-new{background:transparent;border:1px solid var(--border);color:var(--txt3);border-radius:8px;padding:8px 12px;font-size:.72rem;transition:all .2s}
+.btn-new:hover{border-color:var(--border2)}
+
+/* Utility */
+.hidden{display:none!important}
+.fade-in{animation:fi .4s ease}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────────────── -->
+<header class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-logo">⚡</div>
+    <div class="hdr-title">
+      <h1>Advanced <em>RAG</em> Explorer</h1>
+      <p>Test Case Intelligence · BGE-large · Qdrant · BM25 · Cross-Encoder · Groq</p>
+    </div>
+  </div>
+  <div class="badges">
+    <span class="badge b-o"><span class="dot pulse"></span>BGE-large-en-v1.5</span>
+    <span class="badge b-b"><span class="dot pulse"></span>Qdrant Local</span>
+    <span class="badge b-p"><span class="dot"></span>BM25 + RRF</span>
+    <span class="badge b-g"><span class="dot"></span>Cross-Encoder</span>
+    <span class="badge b-o" id="hdr-stat"><span class="dot"></span>No data</span>
+    <button class="btn-add-more hidden" id="btn-add-more" onclick="toggleAddMore()">➕ Upload More</button>
+  </div>
+</header>
+<style>
+.btn-add-more{background:var(--orange-d);border:1px solid rgba(217,119,87,.4);color:var(--orange);border-radius:8px;padding:6px 14px;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-add-more:hover{background:var(--orange);color:#fff}
+/* ── Add More Panel ────────────────────────────────── */
+#add-more-panel{
+  background:var(--bg1);border-bottom:2px solid var(--orange);
+  padding:0;max-height:0;overflow:hidden;transition:max-height .35s ease,padding .35s ease;
+}
+#add-more-panel.open{max-height:520px;padding:20px 28px}
+.amp-inner{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.amp-drop{
+  border:2px dashed var(--border2);border-radius:12px;padding:28px;text-align:center;
+  cursor:pointer;transition:all .2s;
+}
+.amp-drop:hover,.amp-drop.drag-over{border-color:var(--orange);background:var(--orange-g)}
+.amp-drop p{font-size:.78rem;color:var(--txt3);margin:8px 0}
+.amp-right{display:flex;flex-direction:column;gap:12px}
+.amp-file-info{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:.78rem;color:var(--txt3)}
+.amp-file-info b{color:var(--txt);display:block;margin-bottom:4px}
+.amp-cols{display:flex;flex-wrap:wrap;gap:6px;max-height:100px;overflow-y:auto}
+.amp-col-chip{
+  display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:6px;padding:4px 9px;font-size:.7rem;cursor:pointer;transition:all .15s;
+}
+.amp-col-chip.selected{background:var(--orange-d);border-color:var(--orange);color:var(--orange)}
+.amp-mode{display:flex;gap:8px}
+.mode-btn{flex:1;padding:8px;border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid var(--border);background:var(--bg2);color:var(--txt3)}
+.mode-btn.active{background:var(--orange-d);border-color:var(--orange);color:var(--orange)}
+.amp-actions{display:flex;gap:8px}
+.btn-amp-ingest{background:linear-gradient(135deg,var(--orange),#B85C34);border:none;color:#fff;border-radius:8px;padding:9px 20px;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-amp-ingest:hover{filter:brightness(1.1)}
+.btn-amp-ingest:disabled{opacity:.5;cursor:not-allowed}
+.btn-amp-cancel{background:transparent;border:1px solid var(--border);color:var(--txt3);border-radius:8px;padding:8px 14px;font-size:.75rem;cursor:pointer}
+/* Progress mini bar */
+.amp-progress{display:none;flex-direction:column;gap:6px;margin-top:10px}
+.amp-progress.show{display:flex}
+.amp-pstep{display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--txt4);padding:4px 0}
+.amp-pstep.run{color:var(--orange)}.amp-pstep.ok{color:var(--green)}
+.amp-pbar-bg{flex:1;height:3px;background:var(--bg3);border-radius:2px}
+.amp-pbar-fill{height:3px;background:var(--orange);border-radius:2px;transition:width .3s;width:0}
+</style>
+
+<!-- ── VIEW 0: Upload ───────────────────────────────────────────────────────── -->
+<div id="upload-view">
+  <div class="upload-card" id="drop-zone" onclick="document.getElementById('file-inp').click()"
+       ondragover="ev.preventDefault();this.classList.add('drag-over')"
+       ondragleave="this.classList.remove('drag-over')"
+       ondrop="handleDrop(event)">
+    <span class="upload-icon">📂</span>
+    <h2>Upload Your <span>Test Cases</span></h2>
+    <p>Drop a CSV or Excel file containing your test cases. The system will automatically detect columns, chunk the data, generate BGE embeddings, store in Qdrant, and build a BM25 index — all locally, zero cloud cost.</p>
+    <button class="btn-upload">Choose File</button>
+    <div class="formats">
+      <span class="fmt-tag">CSV</span>
+      <span class="fmt-tag">XLSX</span>
+      <span class="fmt-tag">XLS</span>
+    </div>
+    <div class="stack-pills">
+      <span class="sp">BAAI/bge-large-en-v1.5</span>
+      <span class="sp">Qdrant Local</span>
+      <span class="sp">BM25 Okapi</span>
+      <span class="sp">ms-marco-MiniLM re-ranker</span>
+      <span class="sp">Groq llama-3.1-8b</span>
+    </div>
+  </div>
+  <input type="file" id="file-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleFileSelect(event)">
+</div>
+
+<!-- ── VIEW 1: Config ───────────────────────────────────────────────────────── -->
+<div id="config-view" class="hidden">
+  <div class="file-banner">
+    <span class="file-icon">📄</span>
+    <div class="file-info">
+      <h3 id="cfg-fname">file.csv</h3>
+      <p id="cfg-fmeta">0 rows · 0 columns</p>
+    </div>
+    <button class="btn-back" onclick="goUpload()" style="margin-left:auto">← Change file</button>
+  </div>
+
+  <div class="section-title">Select columns to embed</div>
+  <div class="col-grid" id="col-grid"></div>
+
+  <div class="chunk-sliders">
+    <div class="slider-group">
+      <label>Chunk Size <span id="cs-val">1000</span> chars</label>
+      <input type="range" id="cs-slider" min="200" max="2000" step="100" value="1000"
+             oninput="document.getElementById('cs-val').textContent=this.value">
+    </div>
+    <div class="slider-group">
+      <label>Overlap <span id="co-val">150</span> chars</label>
+      <input type="range" id="co-slider" min="0" max="400" step="25" value="150"
+             oninput="document.getElementById('co-val').textContent=this.value">
+    </div>
+  </div>
+
+  <div class="section-title">Data preview (first 5 rows)</div>
+  <div style="overflow-x:auto;margin-bottom:20px">
+    <table class="preview-table" id="preview-tbl"></table>
+  </div>
+
+  <div class="action-row">
+    <button class="btn-ingest" onclick="startIngest()">⚡ Run Ingestion</button>
+    <span style="font-size:.75rem;color:var(--txt3)" id="chunk-preview-note"></span>
+  </div>
+</div>
+
+<!-- ── VIEW 2: Ingestion Progress ───────────────────────────────────────────── -->
+<div id="ingest-view" class="hidden">
+  <div class="ingest-header">
+    <h2>⚡ <span>Ingestion</span> Pipeline</h2>
+    <p>Processing your test cases through the Advanced RAG pipeline</p>
+  </div>
+  <div class="ingest-steps">
+    <div class="istep" id="is-parse">
+      <div class="istep-top">
+        <div class="istep-icon">📄</div>
+        <div class="istep-info"><h3>Parse File</h3><p id="is-parse-msg">Waiting…</p></div>
+        <span class="istep-status" id="is-parse-st">Pending</span>
+      </div>
+      <div class="istep-bar"><div class="istep-bar-fill" id="is-parse-bar"></div></div>
+    </div>
+    <div class="istep" id="is-chunk">
+      <div class="istep-top">
+        <div class="istep-icon">✂️</div>
+        <div class="istep-info"><h3>Chunking</h3><p id="is-chunk-msg">Waiting…</p></div>
+        <span class="istep-status" id="is-chunk-st">Pending</span>
+      </div>
+      <div class="istep-bar"><div class="istep-bar-fill" id="is-chunk-bar"></div></div>
+    </div>
+    <div class="istep" id="is-embed">
+      <div class="istep-top">
+        <div class="istep-icon">🔢</div>
+        <div class="istep-info"><h3>BGE Embeddings</h3><p id="is-embed-msg">Waiting…</p></div>
+        <span class="istep-status" id="is-embed-st">Pending</span>
+      </div>
+      <div class="istep-bar"><div class="istep-bar-fill" id="is-embed-bar"></div></div>
+    </div>
+    <div class="istep" id="is-qdrant">
+      <div class="istep-top">
+        <div class="istep-icon">💾</div>
+        <div class="istep-info"><h3>Qdrant Vector Store</h3><p id="is-qdrant-msg">Waiting…</p></div>
+        <span class="istep-status" id="is-qdrant-st">Pending</span>
+      </div>
+      <div class="istep-bar"><div class="istep-bar-fill" id="is-qdrant-bar"></div></div>
+    </div>
+    <div class="istep" id="is-bm25">
+      <div class="istep-top">
+        <div class="istep-icon">🔑</div>
+        <div class="istep-info"><h3>BM25 Keyword Index</h3><p id="is-bm25-msg">Waiting…</p></div>
+        <span class="istep-status" id="is-bm25-st">Pending</span>
+      </div>
+      <div class="istep-bar"><div class="istep-bar-fill" id="is-bm25-bar"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── VIEW 3: Explorer ─────────────────────────────────────────────────────── -->
+<div id="explorer-view" class="hidden">
+
+  <!-- ── Upload More Panel (slide-down) ─────────────────── -->
+  <div id="add-more-panel">
+    <div class="amp-inner">
+      <div class="amp-drop" id="amp-drop"
+           onclick="document.getElementById('amp-file-inp').click()"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="ampHandleDrop(event)">
+        <div style="font-size:2rem">📂</div>
+        <p>Drop another CSV / Excel file<br>or click to browse</p>
+        <span style="font-size:.65rem;color:var(--txt4)">Supports: CSV, XLSX, XLS</span>
+      </div>
+      <input type="file" id="amp-file-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="ampHandleSelect(event)">
+
+      <div class="amp-right">
+        <div class="amp-file-info" id="amp-file-info">
+          <b>No file selected</b>
+          <span>Select a CSV or Excel file to add more test cases to the RAG system.</span>
+        </div>
+
+        <div id="amp-col-section" style="display:none">
+          <div class="section-title" style="margin-bottom:6px">Columns to embed</div>
+          <div class="amp-cols" id="amp-cols"></div>
+        </div>
+
+        <div id="amp-mode-section" style="display:none">
+          <div class="section-title" style="margin-bottom:6px">Ingestion mode</div>
+          <div class="amp-mode">
+            <button class="mode-btn active" id="mode-append" onclick="setMode('append')">
+              ➕ Append<br><span style="font-weight:400;font-size:.65rem">Add to existing data</span>
+            </button>
+            <button class="mode-btn" id="mode-replace" onclick="setMode('replace')">
+              🔄 Replace<br><span style="font-weight:400;font-size:.65rem">Clear & re-ingest all</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="amp-progress" id="amp-progress">
+          <div class="amp-pstep" id="ap-parse">📄 <span id="ap-parse-msg">Parse…</span><div class="amp-pbar-bg"><div class="amp-pbar-fill" id="ap-parse-bar"></div></div></div>
+          <div class="amp-pstep" id="ap-chunk">✂️ <span id="ap-chunk-msg">Chunk…</span><div class="amp-pbar-bg"><div class="amp-pbar-fill" id="ap-chunk-bar"></div></div></div>
+          <div class="amp-pstep" id="ap-embed">🔢 <span id="ap-embed-msg">Embed…</span><div class="amp-pbar-bg"><div class="amp-pbar-fill" id="ap-embed-bar"></div></div></div>
+          <div class="amp-pstep" id="ap-qdrant">💾 <span id="ap-qdrant-msg">Qdrant…</span><div class="amp-pbar-bg"><div class="amp-pbar-fill" id="ap-qdrant-bar"></div></div></div>
+          <div class="amp-pstep" id="ap-bm25">🔑 <span id="ap-bm25-msg">BM25…</span><div class="amp-pbar-bg"><div class="amp-pbar-fill" id="ap-bm25-bar"></div></div></div>
+        </div>
+
+        <div class="amp-actions" id="amp-actions" style="display:none">
+          <button class="btn-amp-ingest" id="btn-amp-ingest" onclick="ampStartIngest()">⚡ Ingest File</button>
+          <button class="btn-amp-cancel" onclick="toggleAddMore()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pipeline Diagram -->
+  <div class="pipeline">
+    <div class="pipeline-lbl">Advanced RAG Pipeline (6-Stage)</div>
+    <div class="pipe-nodes">
+      <div class="pn" id="pn-q"><div class="pi">❓</div><div class="pl">Query</div></div>
+      <div class="pa" id="pa1">→</div>
+      <div class="pn" id="pn-e"><div class="pi">🔢</div><div class="pl">BGE Embed</div></div>
+      <div class="pa" id="pa2">→</div>
+      <div class="pn" id="pn-d"><div class="pi">🎯</div><div class="pl">Dense Retrieval</div></div>
+      <div class="pa" id="pa3">+</div>
+      <div class="pn" id="pn-b"><div class="pi">🔑</div><div class="pl">BM25 Sparse</div></div>
+      <div class="pa" id="pa4">→</div>
+      <div class="pn" id="pn-r"><div class="pi">⚡</div><div class="pl">RRF Fusion</div></div>
+      <div class="pa" id="pa5">→</div>
+      <div class="pn" id="pn-rr"><div class="pi">🏆</div><div class="pl">Re-rank</div></div>
+      <div class="pa" id="pa6">→</div>
+      <div class="pn" id="pn-l"><div class="pi">🤖</div><div class="pl">Groq LLM</div></div>
+      <div class="pa" id="pa7">→</div>
+      <div class="pn" id="pn-a"><div class="pi">💬</div><div class="pl">Answer</div></div>
+    </div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="sbar">
+    <div class="sitem"><div class="slbl">Chunks</div><div class="sval orange" id="s-chunks">–</div></div>
+    <div class="sitem"><div class="slbl">Vectors (Qdrant)</div><div class="sval blue" id="s-vecs">–</div></div>
+    <div class="sitem"><div class="slbl">Embed Model</div><div class="sval" style="font-size:.7rem;color:var(--orange)">BAAI/bge-large-en-v1.5</div></div>
+    <div class="sitem"><div class="slbl">Re-ranker</div><div class="sval" style="font-size:.7rem;color:var(--green)">ms-marco-MiniLM-L-6-v2</div></div>
+    <div class="sitem"><div class="slbl">LLM</div><div class="sval" style="font-size:.7rem;color:var(--purple)">Groq llama-3.1-8b-instant</div></div>
+    <div class="sitem"><div class="slbl">Vector DB</div><div class="sval" style="font-size:.7rem;color:var(--blue)">Qdrant · Local</div></div>
+  </div>
+
+  <!-- Main: Left + Right -->
+  <div class="main">
+
+    <!-- LEFT: Chunk Explorer -->
+    <aside class="lp">
+      <div class="lp-hdr">
+        <h2>📚 Chunk Explorer</h2>
+        <span class="lp-cnt" id="lp-cnt">0 chunks</span>
+      </div>
+      <div class="lp-search"><input id="chunk-search" placeholder="Search chunks…" oninput="filterChunks()"></div>
+      <div class="overlap-legend">
+        <span class="ov-item"><span class="ov-dot ov-in"></span>Incoming overlap</span>
+        <span class="ov-item"><span class="ov-dot ov-out"></span>Outgoing overlap</span>
+        <span style="margin-left:auto">Click chunk to expand</span>
+      </div>
+      <div class="chunk-list" id="chunk-list">
+        <div style="text-align:center;padding:30px;color:var(--txt4);font-size:.8rem">Loading…</div>
+      </div>
+    </aside>
+
+    <!-- RIGHT: Chat -->
+    <main class="rp">
+      <div class="chat-msgs" id="chat-msgs">
+        <div class="chat-empty" id="chat-empty">
+          <div class="ei">🧠</div>
+          <p>Ask anything about your test cases. The Advanced RAG pipeline will embed your query, search Qdrant + BM25, fuse results with RRF, re-rank with a cross-encoder, then generate a grounded answer via Groq.</p>
+          <div class="eg-queries">
+            <button class="eq" onclick="setQ(this)">Show me all login test cases</button>
+            <button class="eq" onclick="setQ(this)">Find high-priority authentication tests</button>
+            <button class="eq" onclick="setQ(this)">Generate a new test case for forgot password flow</button>
+            <button class="eq" onclick="setQ(this)">What test cases cover error handling?</button>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <div class="ci-row">
+          <div class="ci-wrap">
+            <textarea id="ci" placeholder="Ask about your test cases, or request to generate new ones… (Ctrl+Enter to send)" rows="2"></textarea>
+          </div>
+          <div class="ci-controls">
+            <div class="ci-selects">
+              <select id="sel-dense" title="Dense top-K"><option value="20">Dense 20</option><option value="10">Dense 10</option><option value="30">Dense 30</option></select>
+              <select id="sel-rerank" title="Final top-K"><option value="5">Rerank 5</option><option value="3">Rerank 3</option><option value="8">Rerank 8</option></select>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn-new" onclick="newChat()">New</button>
+              <button class="btn-send" id="btn-send" onclick="sendQuery()">Send →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+/* ── State ─────────────────────────────────────────────────────────────────── */
+let allChunks = [];
+let lastHighlight = {};
+let uploadedFile = null;
+const PIPE_NODES = ['pn-q','pn-e','pn-d','pn-b','pn-r','pn-rr','pn-l','pn-a'];
+const PIPE_ARR   = ['pa1','pa2','pa3','pa4','pa5','pa6','pa7'];
+
+/* ── Init ──────────────────────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  checkExisting();
+  document.getElementById('ci').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendQuery();
+  });
+});
+
+async function checkExisting() {
+  try {
+    const r = await fetch('/api/stats');
+    const d = await r.json();
+    if (d.ready && d.chunk_count > 0) {
+      await loadChunks();
+      document.getElementById('s-chunks').textContent = d.chunk_count;
+      document.getElementById('s-vecs').textContent = d.vector_count;
+      document.getElementById('hdr-stat').innerHTML = `<span class="dot"></span>${d.chunk_count} chunks ready`;
+      showView('explorer-view');
+      document.getElementById('btn-add-more').classList.remove('hidden');
+    }
+  } catch(e) {}
+}
+
+/* ── Upload ─────────────────────────────────────────────────────────────────── */
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) processFile(f);
+}
+
+function handleFileSelect(e) {
+  const f = e.target.files[0];
+  if (f) processFile(f);
+  e.target.value = '';
+}
+
+async function processFile(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch('/api/upload', { method: 'POST', body: fd });
+    const d = await r.json();
+    if (!r.ok) { alert(d.error); return; }
+    uploadedFile = d;
+    renderConfigView(d);
+    showView('config-view');
+  } catch(e) { alert('Upload failed: ' + e); }
+}
+
+function renderConfigView(d) {
+  document.getElementById('cfg-fname').textContent = d.filename;
+  document.getElementById('cfg-fmeta').textContent = `${d.row_count.toLocaleString()} rows · ${d.columns.length} columns`;
+
+  // Column chips
+  const grid = document.getElementById('col-grid');
+  grid.innerHTML = d.columns.map(col => {
+    const sel = d.suggested_columns.includes(col);
+    return `<label class="col-chip ${sel ? 'selected' : ''}" onclick="toggleChip(this)">
+      <input type="checkbox" ${sel ? 'checked' : ''} value="${escHtml(col)}" style="display:none">
+      ${escHtml(col)}
+    </label>`;
+  }).join('');
+
+  // Preview table
+  const tbl = document.getElementById('preview-tbl');
+  const cols = d.columns;
+  tbl.innerHTML = `<thead><tr>${cols.map(c => `<th>${escHtml(c)}</th>`).join('')}</tr></thead>
+    <tbody>${d.preview.map(row => `<tr>${cols.map(c => `<td title="${escHtml(String(row[c]||''))}">${escHtml(String(row[c]||'').slice(0,60))}</td>`).join('')}</tr>`).join('')}</tbody>`;
+
+  document.getElementById('chunk-preview-note').textContent = `${d.row_count} rows will be chunked with the settings above`;
+}
+
+function toggleChip(el) {
+  el.classList.toggle('selected');
+  el.querySelector('input').checked = el.classList.contains('selected');
+}
+
+function getSelectedCols() {
+  return [...document.querySelectorAll('#col-grid .col-chip.selected input')].map(i => i.value);
+}
+
+function goUpload() { showView('upload-view'); }
+
+/* ── Ingestion ──────────────────────────────────────────────────────────────── */
+async function startIngest() {
+  const cols = getSelectedCols();
+  if (!cols.length) { alert('Select at least one column'); return; }
+  const chunk_size   = parseInt(document.getElementById('cs-slider').value);
+  const chunk_overlap = parseInt(document.getElementById('co-slider').value);
+
+  showView('ingest-view');
+  resetIngestionUI();
+
+  const payload = { file_path: uploadedFile.file_path, columns: cols, chunk_size, chunk_overlap };
+
+  try {
+    const resp = await fetch('/api/ingest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try {
+            handleIngestEvent(JSON.parse(line.slice(6)));
+          } catch(e) {}
+        }
+      }
+    }
+  } catch(e) {
+    alert('Ingestion error: ' + e);
+    showView('config-view');
+  }
+}
+
+function resetIngestionUI() {
+  ['parse','chunk','embed','qdrant','bm25'].forEach(s => {
+    const el = document.getElementById('is-'+s);
+    el.className = 'istep';
+    document.getElementById('is-'+s+'-msg').textContent = 'Waiting…';
+    document.getElementById('is-'+s+'-st').textContent = 'Pending';
+    const bar = document.getElementById('is-'+s+'-bar');
+    if (bar) bar.style.width = '0%';
+  });
+}
+
+function handleIngestEvent(ev) {
+  if (ev.t === 'step') {
+    const el = document.getElementById('is-' + ev.s);
+    if (!el) return;
+    if (ev.st === 'run') {
+      el.className = 'istep run';
+      document.getElementById('is-'+ev.s+'-st').textContent = 'Running';
+    } else if (ev.st === 'ok') {
+      el.className = 'istep ok';
+      document.getElementById('is-'+ev.s+'-st').textContent = '✓ Done';
+    }
+    document.getElementById('is-'+ev.s+'-msg').textContent = ev.m || '';
+    const bar = document.getElementById('is-'+ev.s+'-bar');
+    if (bar && ev.p !== undefined) bar.style.width = ev.p + '%';
+  }
+  if (ev.t === 'done') {
+    setTimeout(async () => {
+      await loadChunks();
+      const r = await fetch('/api/stats');
+      const d = await r.json();
+      document.getElementById('s-chunks').textContent = d.chunk_count;
+      document.getElementById('s-vecs').textContent = d.vector_count;
+      document.getElementById('hdr-stat').innerHTML = `<span class="dot"></span>${d.chunk_count} chunks ready`;
+      showView('explorer-view');
+      document.getElementById('btn-add-more').classList.remove('hidden');
+    }, 800);
+  }
+  if (ev.t === 'error') {
+    alert('Ingestion error:\n' + ev.m);
+    showView('config-view');
+  }
+}
+
+/* ── Chunks ─────────────────────────────────────────────────────────────────── */
+async function loadChunks() {
+  const r = await fetch('/api/chunks');
+  allChunks = await r.json();
+  document.getElementById('lp-cnt').textContent = allChunks.length + ' chunks';
+  renderChunks(allChunks, {}); // renders first PAGE_SIZE only
+}
+
+const PAGE_SIZE = 80; // max DOM nodes at once — 5000 would freeze browser
+let currentView = []; // the current filtered+sorted list
+
+function chunkCard(c, hlMap) {
+  const hl = hlMap[c.id];
+  const rank = hl ? hl.rank : 0;
+  const rankClass = rank ? `hl${rank}` : '';
+  const rankBadge = rank ? `<span class="cc-rank rank-${rank}">#${rank}</span>` : '';
+  const simBar = hl ? `<div class="simbar">
+    <div class="simbar-labels"><span>Similarity</span><span>${(hl.score*100||0).toFixed(1)}%</span></div>
+    <div class="simbar-bg"><div class="simbar-fill fill-${rank}" style="width:${((hl.score||0)*100).toFixed(1)}%"></div></div>
+  </div>` : '';
+  const multiChip = c.total_chunks > 1 ? `<span class="multi-chip">Chunk ${c.chunk_index}/${c.total_chunks}</span>` : '';
+  return `<div class="cc ${rankClass}" id="cc-${c.id}" onclick="toggleCC(this)">
+    <div class="cc-meta">
+      <span class="cc-id">${escHtml(c.id)}</span>
+      <span class="cc-row">Row ${c.source_row}</span>
+      ${multiChip}${rankBadge}
+    </div>
+    ${simBar}
+    <div class="cc-text collapsed">${renderOverlap(c)}</div>
+    <div class="cc-footer">
+      <span>📝 ${c.word_count} words</span>
+      <span>🔤 ${c.char_count} chars</span>
+      ${c.overlap_in > 0 ? `<span style="color:var(--amber)">⬆ in:${c.overlap_in}</span>` : ''}
+      ${c.overlap_out > 0 ? `<span style="color:var(--purple)">⬇ out:${c.overlap_out}</span>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderChunks(chunks, hlMap) {
+  currentView = chunks;
+  const list = document.getElementById('chunk-list');
+  if (!chunks.length) {
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--txt4);font-size:.8rem">No chunks found</div>';
+    return;
+  }
+  const toRender = chunks.slice(0, PAGE_SIZE);
+  const remaining = chunks.length - toRender.length;
+  const moreBtn = remaining > 0
+    ? `<button onclick="loadMoreChunks()" style="background:var(--bg2);border:1px solid var(--border);color:var(--txt3);border-radius:8px;padding:8px;font-size:.72rem;cursor:pointer;width:100%;margin-top:4px">
+        Load ${Math.min(remaining, PAGE_SIZE)} more of ${remaining.toLocaleString()} remaining chunks
+       </button>` : '';
+  list.innerHTML = toRender.map(c => chunkCard(c, hlMap)).join('') + moreBtn;
+  document.getElementById('lp-cnt').textContent =
+    `${toRender.length} of ${chunks.length} chunks`;
+}
+
+let renderedCount = PAGE_SIZE;
+function loadMoreChunks() {
+  const hlMap = lastHighlight;
+  const next = currentView.slice(renderedCount, renderedCount + PAGE_SIZE);
+  const remaining = currentView.length - renderedCount - next.length;
+  const btn = document.querySelector('#chunk-list button');
+  if (btn) {
+    btn.insertAdjacentHTML('beforebegin', next.map(c => chunkCard(c, hlMap)).join(''));
+    if (remaining > 0) {
+      btn.textContent = `Load ${Math.min(remaining, PAGE_SIZE)} more of ${remaining.toLocaleString()} remaining chunks`;
+    } else {
+      btn.remove();
+      document.getElementById('lp-cnt').textContent = `${currentView.length} chunks`;
+    }
+  }
+  renderedCount += next.length;
+}
+
+function renderOverlap(c) {
+  if (!c.overlap_in && !c.overlap_out) return escHtml(c.text);
+  const raw = c.text;
+  const oi = c.overlap_in || 0;
+  const oo = c.overlap_out || 0;
+  const parts = [];
+  if (oi > 0)
+    parts.push(`<span class="ov-in-txt" title="⬆ Incoming overlap — ${oi} chars shared with previous chunk">${escHtml(raw.slice(0, oi))}</span>`);
+  const mid = raw.slice(oi, oo > 0 ? raw.length - oo : undefined);
+  if (mid) parts.push(escHtml(mid));
+  if (oo > 0)
+    parts.push(`<span class="ov-out-txt" title="⬇ Outgoing overlap — ${oo} chars shared with next chunk">${escHtml(raw.slice(-oo))}</span>`);
+  return parts.join('');
+}
+
+function toggleCC(el) { el.querySelector('.cc-text').classList.toggle('collapsed'); }
+
+function filterChunks() {
+  const q = document.getElementById('chunk-search').value.toLowerCase();
+  const hl = Object.keys(lastHighlight);
+  let filtered = q
+    ? allChunks.filter(c =>
+        c.text.toLowerCase().includes(q) || c.id.toLowerCase().includes(q) ||
+        String(c.source_row).includes(q))
+    : allChunks;
+  // Put retrieved (highlighted) chunks first
+  if (hl.length) {
+    const hlSet = new Set(hl);
+    filtered = [...filtered.filter(c => hlSet.has(c.id)), ...filtered.filter(c => !hlSet.has(c.id))];
+  }
+  renderedCount = PAGE_SIZE;
+  renderChunks(filtered, lastHighlight);
+}
+
+function highlightChunks(retrieved) {
+  lastHighlight = {};
+  retrieved.forEach((c, i) => { lastHighlight[c.id] = { rank: i + 1, score: c.score || c.rrf_score || 0 }; });
+  renderedCount = PAGE_SIZE;
+  filterChunks(); // puts retrieved chunks first
+  setTimeout(() => {
+    const list = document.getElementById('chunk-list');
+    if (list) list.scrollTop = 0; // scroll to top to show highlighted chunks
+  }, 300);
+}
+
+/* ── Pipeline animation ─────────────────────────────────────────────────────── */
+function resetPipe() {
+  PIPE_NODES.forEach(id => { const n = document.getElementById(id); if(n) n.className='pn'; });
+  PIPE_ARR.forEach(id => { const a = document.getElementById(id); if(a) a.className='pa'; });
+}
+
+async function animatePipe(upTo) {
+  resetPipe();
+  for (let i = 0; i <= upTo; i++) {
+    const n = document.getElementById(PIPE_NODES[i]);
+    if (n) n.className = i < upTo ? 'pn done' : 'pn active';
+    if (i > 0) { const a = document.getElementById(PIPE_ARR[i-1]); if(a) a.className='pa lit'; }
+    if (i < upTo) await delay(180);
+  }
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ── Chat ───────────────────────────────────────────────────────────────────── */
+function setQ(el) { document.getElementById('ci').value = el.textContent; document.getElementById('ci').focus(); }
+function newChat() { resetPipe(); lastHighlight = {}; filterChunks(); document.getElementById('chat-msgs').innerHTML = document.querySelector('.chat-empty').outerHTML; }
+
+async function sendQuery() {
+  const query = document.getElementById('ci').value.trim();
+  if (!query) return;
+  document.getElementById('btn-send').disabled = true;
+  document.getElementById('ci').value = '';
+
+  const msgs = document.getElementById('chat-msgs');
+  // Remove empty state if present
+  const emptyEl = msgs.querySelector('.chat-empty');
+  if (emptyEl) emptyEl.remove();
+
+  // User bubble
+  msgs.insertAdjacentHTML('beforeend', `<div class="msg-user fade-in"><div class="bubble">${escHtml(query)}</div></div>`);
+
+  // Thinking
+  const thinkId = 'think-' + Date.now();
+  msgs.insertAdjacentHTML('beforeend', `<div class="thinking fade-in" id="${thinkId}">
+    <div class="spin"></div>
+    <div class="ld-steps">
+      <div class="ld-step cur" id="${thinkId}-1">🔢 Embedding query with BGE-large…</div>
+      <div class="ld-step" id="${thinkId}-2">🎯 Dense retrieval from Qdrant…</div>
+      <div class="ld-step" id="${thinkId}-3">🔑 BM25 keyword retrieval…</div>
+      <div class="ld-step" id="${thinkId}-4">⚡ RRF fusion…</div>
+      <div class="ld-step" id="${thinkId}-5">🏆 Cross-encoder re-ranking…</div>
+      <div class="ld-step" id="${thinkId}-6">🤖 Groq LLM generation…</div>
+    </div>
+  </div>`);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Animate pipeline steps in parallel with API call
+  let stepIdx = 0;
+  const stepTimer = setInterval(async () => {
+    stepIdx++;
+    if (stepIdx > 6) { clearInterval(stepTimer); return; }
+    for (let i = 1; i < stepIdx; i++) {
+      const el = document.getElementById(`${thinkId}-${i}`);
+      if (el) { el.classList.remove('cur'); el.classList.add('done'); el.innerHTML = '✅ ' + el.textContent.slice(3); }
+    }
+    const cur = document.getElementById(`${thinkId}-${stepIdx}`);
+    if (cur) cur.classList.add('cur');
+    await animatePipe(stepIdx);
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 600);
+
+  try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query,
+        top_dense:  parseInt(document.getElementById('sel-dense').value),
+        top_bm25:   parseInt(document.getElementById('sel-dense').value),
+        top_rerank: parseInt(document.getElementById('sel-rerank').value),
+      })
+    });
+    const d = await r.json();
+    clearInterval(stepTimer);
+    document.getElementById(thinkId)?.remove();
+
+    if (!r.ok) { msgs.insertAdjacentHTML('beforeend', `<div style="color:var(--red);font-size:.8rem;padding:8px 12px">❌ ${escHtml(d.error)}</div>`); return; }
+
+    await animatePipe(7); // fully done
+    highlightChunks(d.context_chunks);
+    msgs.insertAdjacentHTML('beforeend', renderBotMessage(d));
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch(err) {
+    clearInterval(stepTimer);
+    document.getElementById(thinkId)?.remove();
+    msgs.insertAdjacentHTML('beforeend', `<div style="color:var(--red);font-size:.8rem;padding:8px 12px">❌ ${escHtml(err.message)}</div>`);
+  } finally {
+    document.getElementById('btn-send').disabled = false;
+  }
+}
+
+function renderBotMessage(d) {
+  const s = d.steps;
+  const rid = 'r' + Date.now();
+
+  // Dense results
+  const denseRows = (s.dense?.results || []).slice(0,6).map((c,i) =>
+    `<div class="result-row"><span class="rr-rank">${i+1}</span><span class="rr-id">${escHtml(c.id)}</span><span class="rr-score" style="color:var(--orange)">${c.score.toFixed(3)}</span><span class="rr-text">${escHtml(c.text?.slice(0,80)||'')}</span><span class="rr-row">r${c.source_row}</span></div>`
+  ).join('');
+
+  // BM25 results
+  const bm25Rows = (s.bm25?.results || []).slice(0,6).map((c,i) =>
+    `<div class="result-row"><span class="rr-rank">${i+1}</span><span class="rr-id">${escHtml(c.id)}</span><span class="rr-score" style="color:var(--amber)">${c.score.toFixed(3)}</span><span class="rr-text">${escHtml(c.text?.slice(0,80)||'')}</span><span class="rr-row">r${c.source_row}</span></div>`
+  ).join('');
+
+  // RRF results
+  const rrfRows = (s.rrf?.results || []).slice(0,6).map((c,i) =>
+    `<div class="result-row"><span class="rr-rank">${i+1}</span><span class="rr-id">${escHtml(c.id)}</span><span class="rr-score" style="color:var(--purple)">${(c.rrf_score||0).toFixed(5)}</span><span class="rr-text">${escHtml(c.text?.slice(0,80)||'')}</span><span class="rr-row">r${c.source_row}</span></div>`
+  ).join('');
+
+  // Re-rank comparison
+  const before = (s.rerank?.before || []).map(x => `<div class="rk-item"><span class="rk-num">${x.rank}</span><span class="rk-cid">${escHtml(x.id)}</span><span class="rk-s">${(x.rrf_score||0).toFixed(4)}</span></div>`).join('');
+  const after  = (s.rerank?.after  || []).map(x => `<div class="rk-item"><span class="rk-num">${x.rank}</span><span class="rk-cid">${escHtml(x.id)}</span><span class="rk-s">${(x.ce_score||0).toFixed(3)}</span></div>`).join('');
+
+  return `<div class="msg-bot fade-in">
+    <div class="steps-wrap">
+      <!-- Embedding -->
+      <div class="sp s-embed" onclick="toggleSP(this)">
+        <div class="sp-hdr">
+          <span class="sp-icon">🔢</span>
+          <span class="sp-name">Query Embedding</span>
+          <span class="sp-meta">${s.embedding?.dims||0}-dim vector · ${s.embedding?.ms||0}ms</span>
+          <span class="sp-arr">▾</span>
+        </div>
+        <div class="sp-body">
+          <div style="font-size:.72rem;color:var(--txt3);line-height:1.7">
+            <b>Model:</b> ${escHtml(s.embedding?.model||'')}<br>
+            <b>Prefix:</b> <span style="color:var(--orange)">${escHtml(s.embedding?.prefix||'')}</span><br>
+            <b>Vector:</b> ${s.embedding?.dims||0} dimensions (cosine similarity space)
+          </div>
+        </div>
+      </div>
+      <!-- Dense -->
+      <div class="sp s-dense" onclick="toggleSP(this)">
+        <div class="sp-hdr">
+          <span class="sp-icon">🎯</span>
+          <span class="sp-name">Dense Retrieval</span>
+          <span class="sp-meta">${s.dense?.retrieved||0} chunks · top score ${s.dense?.top_score||0} · ${s.dense?.ms||0}ms</span>
+          <span class="sp-arr">▾</span>
+        </div>
+        <div class="sp-body">${denseRows || '<span style="color:var(--txt4);font-size:.72rem">No results</span>'}</div>
+      </div>
+      <!-- BM25 -->
+      <div class="sp s-bm25" onclick="toggleSP(this)">
+        <div class="sp-hdr">
+          <span class="sp-icon">🔑</span>
+          <span class="sp-name">BM25 Keyword Retrieval</span>
+          <span class="sp-meta">${s.bm25?.retrieved||0} matches · top score ${s.bm25?.top_score||0} · ${s.bm25?.ms||0}ms</span>
+          <span class="sp-arr">▾</span>
+        </div>
+        <div class="sp-body">${bm25Rows || '<span style="color:var(--txt4);font-size:.72rem">No results</span>'}</div>
+      </div>
+      <!-- RRF -->
+      <div class="sp s-rrf" onclick="toggleSP(this)">
+        <div class="sp-hdr">
+          <span class="sp-icon">⚡</span>
+          <span class="sp-name">RRF Fusion</span>
+          <span class="sp-meta">${s.rrf?.input_dense||0} dense + ${s.rrf?.input_bm25||0} BM25 → ${s.rrf?.output_unique||0} unique · ${s.rrf?.ms||0}ms</span>
+          <span class="sp-arr">▾</span>
+        </div>
+        <div class="sp-body">${rrfRows}</div>
+      </div>
+      <!-- Re-rank -->
+      <div class="sp s-rerank" onclick="toggleSP(this)">
+        <div class="sp-hdr">
+          <span class="sp-icon">🏆</span>
+          <span class="sp-name">Cross-Encoder Re-ranking</span>
+          <span class="sp-meta">${s.rerank?.input_count||0} in → ${s.rerank?.output_count||0} out · ${s.rerank?.ms||0}ms</span>
+          <span class="sp-arr">▾</span>
+        </div>
+        <div class="sp-body">
+          <div style="font-size:.68rem;color:var(--txt3);margin-bottom:8px">Model: ${escHtml(s.rerank?.model||'')} · Scores each (query, chunk) pair</div>
+          <div class="rerank-compare">
+            <div class="rk-col before"><h4>Before (RRF order)</h4>${before}</div>
+            <div class="rk-col after"><h4>After (CE score)</h4>${after}</div>
+          </div>
+        </div>
+      </div>
+      <!-- LLM -->
+      <div class="sp s-llm" onclick="toggleSP(this)">
+        <div class="sp-hdr">
+          <span class="sp-icon">🤖</span>
+          <span class="sp-name">Groq LLM Generation</span>
+          <span class="sp-meta">${s.llm?.context_chunks||0} chunks · ${s.llm?.prompt_tokens||0}+${s.llm?.completion_tokens||0} tokens · ${s.llm?.ms||0}ms</span>
+          <span class="sp-arr">▾</span>
+        </div>
+        <div class="sp-body">
+          <div style="font-size:.72rem;color:var(--txt3)"><b>Model:</b> ${escHtml(s.llm?.model||'')} &nbsp; <b>Prompt tokens:</b> ${s.llm?.prompt_tokens||0} &nbsp; <b>Completion:</b> ${s.llm?.completion_tokens||0}</div>
+        </div>
+      </div>
+    </div>
+    <!-- Answer -->
+    <div class="msg-bot-row">
+      <div class="bot-avatar">⚡</div>
+      <div class="bubble">
+        ${escHtml(d.answer)}
+        <div class="timing-strip">
+          <span class="ti">Embed <b>${s.embedding?.ms||0}ms</b></span>
+          <span class="ti">Dense <b>${s.dense?.ms||0}ms</b></span>
+          <span class="ti">BM25 <b>${s.bm25?.ms||0}ms</b></span>
+          <span class="ti">RRF <b>${s.rrf?.ms||0}ms</b></span>
+          <span class="ti">Rerank <b>${s.rerank?.ms||0}ms</b></span>
+          <span class="ti">LLM <b>${s.llm?.ms||0}ms</b></span>
+          <span class="ti">Total <b>${d.total_ms}ms</b></span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleSP(el) { el.classList.toggle('open'); }
+
+/* ── Upload More ────────────────────────────────────────────────────────────── */
+let ampFile = null;
+let ampMode = 'append';
+
+function toggleAddMore() {
+  const panel = document.getElementById('add-more-panel');
+  panel.classList.toggle('open');
+}
+
+function setMode(m) {
+  ampMode = m;
+  document.getElementById('mode-append').classList.toggle('active', m === 'append');
+  document.getElementById('mode-replace').classList.toggle('active', m === 'replace');
+}
+
+function ampHandleDrop(e) {
+  e.preventDefault();
+  document.getElementById('amp-drop').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) ampProcessFile(f);
+}
+function ampHandleSelect(e) {
+  const f = e.target.files[0];
+  if (f) ampProcessFile(f);
+  e.target.value = '';
+}
+
+async function ampProcessFile(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch('/api/upload', { method: 'POST', body: fd });
+    const d = await r.json();
+    if (!r.ok) { alert(d.error); return; }
+    ampFile = d;
+
+    // Update file info
+    document.getElementById('amp-file-info').innerHTML =
+      `<b>📄 ${escHtml(d.filename)}</b><span>${d.row_count.toLocaleString()} rows · ${d.columns.length} columns</span>`;
+
+    // Populate column chips
+    const colsDiv = document.getElementById('amp-cols');
+    colsDiv.innerHTML = d.columns.map(col => {
+      const sel = d.suggested_columns.includes(col);
+      return `<label class="amp-col-chip ${sel?'selected':''}" onclick="this.classList.toggle('selected');this.querySelector('input').checked=this.classList.contains('selected')">
+        <input type="checkbox" ${sel?'checked':''} value="${escHtml(col)}" style="display:none">${escHtml(col)}
+      </label>`;
+    }).join('');
+
+    document.getElementById('amp-col-section').style.display = 'block';
+    document.getElementById('amp-mode-section').style.display = 'block';
+    document.getElementById('amp-actions').style.display = 'flex';
+    document.getElementById('amp-progress').classList.remove('show');
+  } catch(e) { alert('Upload failed: ' + e); }
+}
+
+function ampGetCols() {
+  return [...document.querySelectorAll('#amp-cols .amp-col-chip.selected input')].map(i => i.value);
+}
+
+async function ampStartIngest() {
+  const cols = ampGetCols();
+  if (!cols.length) { alert('Select at least one column'); return; }
+  if (!ampFile) return;
+
+  // Show progress
+  document.getElementById('btn-amp-ingest').disabled = true;
+  document.getElementById('amp-progress').classList.add('show');
+  ['parse','chunk','embed','qdrant','bm25'].forEach(s => {
+    document.getElementById('ap-'+s).className = 'amp-pstep';
+    document.getElementById('ap-'+s+'-bar').style.width = '0%';
+  });
+
+  const payload = {
+    file_path: ampFile.file_path,
+    columns: cols,
+    chunk_size: 1000,
+    chunk_overlap: 150,
+    append: ampMode === 'append'
+  };
+
+  try {
+    const resp = await fetch('/api/ingest', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          try { ampHandleEvent(JSON.parse(line.slice(6))); } catch(e) {}
+        }
+      }
+    }
+  } catch(e) {
+    alert('Ingestion error: ' + e);
+  } finally {
+    document.getElementById('btn-amp-ingest').disabled = false;
+  }
+}
+
+function ampHandleEvent(ev) {
+  if (ev.t === 'step') {
+    const el = document.getElementById('ap-' + ev.s);
+    if (!el) return;
+    el.className = 'amp-pstep ' + (ev.st === 'ok' ? 'ok' : 'run');
+    document.getElementById('ap-'+ev.s+'-msg').textContent = ev.m || '';
+    const bar = document.getElementById('ap-'+ev.s+'-bar');
+    if (bar && ev.p !== undefined) bar.style.width = ev.p + '%';
+    if (ev.st === 'ok' && bar) bar.style.width = '100%';
+  }
+  if (ev.t === 'done') {
+    // Reload chunks and stats
+    setTimeout(async () => {
+      await loadChunks();
+      const r = await fetch('/api/stats');
+      const d = await r.json();
+      document.getElementById('s-chunks').textContent = d.chunk_count;
+      document.getElementById('s-vecs').textContent = d.vector_count;
+      document.getElementById('hdr-stat').innerHTML =
+        `<span class="dot"></span>${d.chunk_count} chunks ready`;
+      // Close panel after success
+      setTimeout(() => {
+        document.getElementById('add-more-panel').classList.remove('open');
+        ampFile = null;
+        document.getElementById('amp-file-info').innerHTML =
+          '<b>No file selected</b><span>Select a CSV or Excel file to add more test cases.</span>';
+        document.getElementById('amp-col-section').style.display = 'none';
+        document.getElementById('amp-mode-section').style.display = 'none';
+        document.getElementById('amp-actions').style.display = 'none';
+        document.getElementById('amp-progress').classList.remove('show');
+        document.getElementById('btn-amp-ingest').disabled = false;
+      }, 1200);
+    }, 400);
+  }
+  if (ev.t === 'error') { alert('Error: ' + ev.m); }
+}
+
+/* ── Utils ──────────────────────────────────────────────────────────────────── */
+function showView(id) {
+  ['upload-view','config-view','ingest-view','explorer-view'].forEach(v => {
+    document.getElementById(v).classList.toggle('hidden', v !== id);
+  });
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+</script>
+</body>
+</html>
