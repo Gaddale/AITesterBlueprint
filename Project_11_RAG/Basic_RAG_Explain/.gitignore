@@ -1,0 +1,5 @@
+chroma_db/
+chunks.json
+.env
+__pycache__/
+*.pyc

@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VWO RAG System — Basic RAG Explorer</title>
+  <style>
+    /* ── Reset & Variables ────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg0:      #090c18;
+      --bg1:      #10152a;
+      --bg2:      #161c35;
+      --bg3:      #1e2540;
+      --border:   #2a3258;
+      --blue:     #4f8ef7;
+      --purple:   #a78bfa;
+      --green:    #10b981;
+      --orange:   #f59e0b;
+      --red:      #f87171;
+      --teal:     #22d3ee;
+      --txt:      #e2e8f0;
+      --txt2:     #94a3b8;
+      --txt3:     #64748b;
+      --glow-b:   0 0 20px rgba(79,142,247,.35);
+      --glow-g:   0 0 20px rgba(16,185,129,.35);
+      --glow-p:   0 0 20px rgba(167,139,250,.35);
+    }
+    html { font-size: 14px; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg0);
+      color: var(--txt);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg1); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    .header {
+      background: linear-gradient(135deg, #0d1433 0%, #1a0e3a 50%, #0d1433 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left h1 { font-size: 1.4rem; font-weight: 700; color: var(--txt); }
+    .header-left h1 span { color: var(--blue); }
+    .header-left p { color: var(--txt2); font-size: .8rem; margin-top: 2px; }
+    .badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 20px; font-size: .72rem; font-weight: 600;
+    }
+    .badge-blue  { background: rgba(79,142,247,.15); color: var(--blue);   border: 1px solid rgba(79,142,247,.3); }
+    .badge-green { background: rgba(16,185,129,.15); color: var(--green);  border: 1px solid rgba(16,185,129,.3); }
+    .badge-purple{ background: rgba(167,139,250,.15);color: var(--purple); border: 1px solid rgba(167,139,250,.3);}
+    .badge-orange{ background: rgba(245,158,11,.15); color: var(--orange); border: 1px solid rgba(245,158,11,.3); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .dot.pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+    /* ── Pipeline Diagram ─────────────────────────────────────── */
+    .pipeline-section {
+      background: var(--bg1);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 28px;
+    }
+    .pipeline-title {
+      font-size: .75rem; font-weight: 700; letter-spacing: .12em;
+      color: var(--txt3); text-transform: uppercase; margin-bottom: 14px;
+    }
+    .pipeline-wrap { display: flex; flex-direction: column; gap: 10px; }
+    .pipeline-row { display: flex; align-items: center; gap: 0; }
+    .pipeline-label {
+      font-size: .68rem; font-weight: 600; color: var(--txt3);
+      letter-spacing: .08em; text-transform: uppercase;
+      width: 110px; flex-shrink: 0;
+    }
+    .pipeline-nodes { display: flex; align-items: center; gap: 0; flex-wrap: nowrap; }
+    .p-node {
+      display: flex; flex-direction: column; align-items: center;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 14px; min-width: 100px;
+      transition: all .3s; cursor: default;
+    }
+    .p-node .icon { font-size: 1.3rem; }
+    .p-node .label { font-size: .68rem; color: var(--txt2); margin-top: 3px; text-align: center; line-height: 1.3; }
+    .p-node .sub { font-size: .6rem; color: var(--txt3); margin-top: 1px; }
+    .p-node.active-node {
+      border-color: var(--blue); background: rgba(79,142,247,.12);
+      box-shadow: var(--glow-b); transform: translateY(-2px);
+    }
+    .p-node.active-node .label { color: var(--blue); }
+    .p-node.done-node {
+      border-color: var(--green); background: rgba(16,185,129,.08);
+    }
+    .p-node.done-node .label { color: var(--green); }
+    .p-arrow {
+      color: var(--txt3); font-size: 1.1rem; padding: 0 6px;
+      transition: color .3s;
+    }
+    .p-arrow.active { color: var(--blue); }
+
+    /* ── Stats Bar ────────────────────────────────────────────── */
+    .stats-bar {
+      display: flex; gap: 0;
+      background: var(--bg1); border-bottom: 1px solid var(--border);
+    }
+    .stat-item {
+      flex: 1; padding: 10px 20px; border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .1em; color: var(--txt3); }
+    .stat-value { font-size: 1.1rem; font-weight: 700; color: var(--txt); margin-top: 2px; }
+    .stat-value span { font-size: .7rem; color: var(--txt2); font-weight: 400; }
+
+    /* ── Main Layout ──────────────────────────────────────────── */
+    .main {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      height: calc(100vh - 200px);
+      min-height: 500px;
+    }
+
+    /* ── Left Panel: Chunks ───────────────────────────────────── */
+    .chunks-panel {
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      background: var(--bg1);
+    }
+    .panel-header {
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-header h2 { font-size: .85rem; font-weight: 700; color: var(--txt); }
+    .panel-header .count { font-size: .72rem; color: var(--txt2); background: var(--bg2); padding: 2px 8px; border-radius: 10px; }
+    .chunks-search {
+      padding: 10px 12px; border-bottom: 1px solid var(--border);
+    }
+    .chunks-search input {
+      width: 100%; background: var(--bg2); border: 1px solid var(--border);
+      color: var(--txt); border-radius: 8px; padding: 7px 12px; font-size: .8rem;
+      outline: none; transition: border-color .2s;
+    }
+    .chunks-search input:focus { border-color: var(--blue); }
+    .chunks-search input::placeholder { color: var(--txt3); }
+    .chunks-list { overflow-y: auto; flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+
+    .chunk-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 12px; cursor: pointer;
+      transition: all .25s; position: relative;
+    }
+    .chunk-card:hover { border-color: #3d4870; background: var(--bg3); }
+    .chunk-card.retrieved {
+      border-color: var(--blue);
+      background: rgba(79,142,247,.08);
+      box-shadow: var(--glow-b);
+    }
+    .chunk-card.rank-1 { border-color: var(--green); background: rgba(16,185,129,.08); box-shadow: var(--glow-g); }
+    .chunk-card.rank-2 { border-color: var(--blue);  background: rgba(79,142,247,.08); box-shadow: var(--glow-b); }
+    .chunk-card.rank-3 { border-color: var(--purple);background: rgba(167,139,250,.08);box-shadow: var(--glow-p); }
+
+    .chunk-meta {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 5px; flex-wrap: wrap;
+    }
+    .chunk-id  { font-size: .65rem; font-weight: 700; color: var(--blue); font-family: monospace; }
+    .page-badge {
+      font-size: .6rem; background: rgba(245,158,11,.15); color: var(--orange);
+      border: 1px solid rgba(245,158,11,.3); padding: 1px 6px; border-radius: 8px;
+    }
+    .rank-badge {
+      font-size: .6rem; padding: 1px 7px; border-radius: 8px; font-weight: 700;
+      margin-left: auto;
+    }
+    .rank-1-badge { background: rgba(16,185,129,.2); color: var(--green); }
+    .rank-2-badge { background: rgba(79,142,247,.2); color: var(--blue); }
+    .rank-3-badge { background: rgba(167,139,250,.2); color: var(--purple); }
+
+    .similarity-bar-wrap { margin-bottom: 5px; }
+    .similarity-bar-bg { height: 3px; background: var(--border); border-radius: 2px; margin-top: 3px; }
+    .similarity-bar-fill { height: 3px; border-radius: 2px; transition: width .5s; }
+    .rank-1-fill { background: var(--green); }
+    .rank-2-fill { background: var(--blue); }
+    .rank-3-fill { background: var(--purple); }
+    .similarity-label { font-size: .6rem; color: var(--txt2); display: flex; justify-content: space-between; }
+
+    .chunk-text {
+      font-size: .72rem; color: var(--txt2); line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .chunk-card.expanded .chunk-text { display: block; -webkit-line-clamp: unset; }
+    .chunk-footer {
+      margin-top: 6px; display: flex; gap: 8px;
+      font-size: .6rem; color: var(--txt3);
+    }
+
+    /* ── Right Panel: Query ───────────────────────────────────── */
+    .query-panel {
+      display: flex; flex-direction: column;
+      background: var(--bg0);
+    }
+
+    /* Query Input Area */
+    .query-input-area {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg1);
+    }
+    .query-input-area h2 { font-size: .85rem; font-weight: 700; margin-bottom: 10px; color: var(--txt); }
+    .query-row { display: flex; gap: 8px; }
+    .query-input-wrap { flex: 1; position: relative; }
+    .query-input-wrap textarea {
+      width: 100%; min-height: 70px; max-height: 150px;
+      background: var(--bg2); border: 1px solid var(--border);
+      color: var(--txt); border-radius: 10px; padding: 10px 14px;
+      font-size: .83rem; font-family: inherit; resize: vertical; outline: none;
+      transition: border-color .2s;
+    }
+    .query-input-wrap textarea:focus { border-color: var(--blue); }
+    .query-input-wrap textarea::placeholder { color: var(--txt3); }
+    .query-controls { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    .topk-select {
+      background: var(--bg2); border: 1px solid var(--border); color: var(--txt);
+      border-radius: 8px; padding: 6px 8px; font-size: .75rem; outline: none;
+    }
+    .btn-ask {
+      background: linear-gradient(135deg, var(--blue), #6366f1);
+      border: none; color: #fff; border-radius: 10px; padding: 12px 22px;
+      font-size: .85rem; font-weight: 700; cursor: pointer;
+      transition: all .2s; white-space: nowrap;
+    }
+    .btn-ask:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .btn-ask:active { transform: translateY(0); }
+    .btn-ask:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-clear {
+      background: transparent; border: 1px solid var(--border); color: var(--txt2);
+      border-radius: 8px; padding: 8px 14px; font-size: .75rem; cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-clear:hover { border-color: var(--red); color: var(--red); }
+
+    /* Results Area */
+    .results-area { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; }
+
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      flex: 1; gap: 12px; color: var(--txt3); text-align: center;
+    }
+    .empty-state .big-icon { font-size: 3rem; }
+    .empty-state p { font-size: .82rem; max-width: 320px; line-height: 1.6; }
+    .example-queries { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+    .example-q {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 14px; font-size: .75rem; color: var(--txt2); cursor: pointer;
+      transition: all .2s; text-align: left;
+    }
+    .example-q:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* Loading */
+    .loading-state { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 30px; }
+    .spinner { width: 38px; height: 38px; border: 3px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-steps { display: flex; flex-direction: column; gap: 6px; }
+    .loading-step {
+      display: flex; align-items: center; gap: 8px;
+      font-size: .78rem; color: var(--txt3); transition: color .3s;
+    }
+    .loading-step.active { color: var(--blue); }
+    .loading-step.done { color: var(--green); }
+    .step-icon { font-size: .9rem; width: 18px; text-align: center; }
+
+    /* Answer card */
+    .answer-card {
+      background: var(--bg1); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px;
+    }
+    .answer-card-header {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+      font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--green);
+    }
+    .answer-text { font-size: .85rem; line-height: 1.7; color: var(--txt); white-space: pre-wrap; }
+    .timing-row {
+      margin-top: 12px; display: flex; gap: 12px; flex-wrap: wrap;
+      padding-top: 10px; border-top: 1px solid var(--border);
+    }
+    .timing-item { font-size: .65rem; color: var(--txt3); }
+    .timing-item span { color: var(--txt2); font-weight: 600; }
+
+    /* Retrieved chunks in results */
+    .retrieved-section h3 {
+      font-size: .75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--txt3); margin-bottom: 10px;
+    }
+    .retrieved-list { display: flex; flex-direction: column; gap: 8px; }
+    .retrieved-item {
+      background: var(--bg1); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px;
+    }
+    .retrieved-item.r1 { border-left: 3px solid var(--green); }
+    .retrieved-item.r2 { border-left: 3px solid var(--blue); }
+    .retrieved-item.r3 { border-left: 3px solid var(--purple); }
+    .ri-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .ri-rank {
+      width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: .65rem; font-weight: 700;
+    }
+    .ri-rank.r1 { background: rgba(16,185,129,.2); color: var(--green); }
+    .ri-rank.r2 { background: rgba(79,142,247,.2); color: var(--blue); }
+    .ri-rank.r3 { background: rgba(167,139,250,.2); color: var(--purple); }
+    .ri-id { font-size: .65rem; font-weight: 700; color: var(--txt2); font-family: monospace; }
+    .ri-score {
+      margin-left: auto; font-size: .65rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 8px;
+    }
+    .ri-score.r1 { background: rgba(16,185,129,.15); color: var(--green); }
+    .ri-score.r2 { background: rgba(79,142,247,.15); color: var(--blue); }
+    .ri-score.r3 { background: rgba(167,139,250,.15); color: var(--purple); }
+    .ri-text { font-size: .73rem; color: var(--txt2); line-height: 1.5; }
+    .ri-text.collapsed {
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .ri-expand-btn {
+      background: none; border: none; color: var(--blue); font-size: .65rem;
+      cursor: pointer; margin-top: 4px; padding: 0;
+    }
+    .ri-expand-btn:hover { text-decoration: underline; }
+
+    /* Flow diagram overlay on results */
+    .flow-diagram {
+      background: var(--bg1); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px;
+    }
+    .flow-diagram h3 {
+      font-size: .75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--txt3); margin-bottom: 14px;
+    }
+    .flow-nodes {
+      display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+    }
+    .fn {
+      display: flex; flex-direction: column; align-items: center;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 12px; min-width: 80px; text-align: center;
+    }
+    .fn .fi { font-size: 1.1rem; }
+    .fn .fl { font-size: .63rem; color: var(--txt2); margin-top: 2px; }
+    .fn .fv { font-size: .58rem; color: var(--txt3); margin-top: 1px; }
+    .fn.f-active { border-color: var(--blue); background: rgba(79,142,247,.1); }
+    .fn.f-active .fl { color: var(--blue); }
+    .fn.f-done   { border-color: var(--green); background: rgba(16,185,129,.07); }
+    .fn.f-done   .fl { color: var(--green); }
+    .fa { color: var(--border); padding: 0 3px; font-size: 1rem; }
+    .fa.f-active { color: var(--blue); animation: arrow-pulse .6s ease infinite alternate; }
+    @keyframes arrow-pulse { from{opacity:.4;} to{opacity:1;} }
+
+    /* ── Responsive tweaks ────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; grid-template-rows: 45vh 1fr; }
+      .chunks-panel { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-left">
+    <h1>VWO <span>RAG</span> System</h1>
+    <p>Retrieval-Augmented Generation · Basic RAG Explorer</p>
+  </div>
+  <div class="badges">
+    <span class="badge badge-blue"><span class="dot"></span>ChromaDB Local</span>
+    <span class="badge badge-purple"><span class="dot pulse"></span>Nomic Embed v1</span>
+    <span class="badge badge-green"><span class="dot pulse"></span>Groq LLM 8B Instant</span>
+    <span class="badge badge-orange" id="db-badge"><span class="dot"></span>Loading…</span>
+  </div>
+</header>
+
+<!-- ── RAG Pipeline Diagram ─────────────────────────────────────────── -->
+<section class="pipeline-section">
+  <div class="pipeline-title">RAG Architecture Pipeline</div>
+  <div class="pipeline-wrap">
+
+    <!-- Ingestion row -->
+    <div class="pipeline-row">
+      <div class="pipeline-label">📥 Ingestion</div>
+      <div class="pipeline-nodes">
+        <div class="p-node done-node" id="pn-pdf">
+          <div class="icon">📄</div>
+          <div class="label">PDF Source</div>
+          <div class="sub">VWO Login PRD</div>
+        </div>
+        <div class="p-arrow done">→</div>
+        <div class="p-node done-node" id="pn-chunk">
+          <div class="icon">✂️</div>
+          <div class="label">Chunking</div>
+          <div class="sub">1000-char / 150 overlap</div>
+        </div>
+        <div class="p-arrow done">→</div>
+        <div class="p-node done-node" id="pn-embed">
+          <div class="icon">🔢</div>
+          <div class="label">Nomic Embed v1</div>
+          <div class="sub">768-dim vectors</div>
+        </div>
+        <div class="p-arrow done">→</div>
+        <div class="p-node done-node" id="pn-chroma">
+          <div class="icon">💾</div>
+          <div class="label">ChromaDB</div>
+          <div class="sub" id="pn-chroma-count">Local Store</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Query row -->
+    <div class="pipeline-row">
+      <div class="pipeline-label">🔍 Query</div>
+      <div class="pipeline-nodes">
+        <div class="p-node" id="pn-q">
+          <div class="icon">❓</div>
+          <div class="label">User Query</div>
+          <div class="sub">Natural language</div>
+        </div>
+        <div class="p-arrow" id="pa-1">→</div>
+        <div class="p-node" id="pn-qembed">
+          <div class="icon">🔢</div>
+          <div class="label">Query Embed</div>
+          <div class="sub">search_query: prefix</div>
+        </div>
+        <div class="p-arrow" id="pa-2">→</div>
+        <div class="p-node" id="pn-search">
+          <div class="icon">🔍</div>
+          <div class="label">Similarity Search</div>
+          <div class="sub">Cosine distance</div>
+        </div>
+        <div class="p-arrow" id="pa-3">→</div>
+        <div class="p-node" id="pn-topk">
+          <div class="icon">📝</div>
+          <div class="label">Top-K Chunks</div>
+          <div class="sub" id="topk-label">k = 3</div>
+        </div>
+        <div class="p-arrow" id="pa-4">→</div>
+        <div class="p-node" id="pn-llm">
+          <div class="icon">🤖</div>
+          <div class="label">Groq LLM</div>
+          <div class="sub">llama-3.1-8b</div>
+        </div>
+        <div class="p-arrow" id="pa-5">→</div>
+        <div class="p-node" id="pn-answer">
+          <div class="icon">💬</div>
+          <div class="label">Answer</div>
+          <div class="sub">Grounded response</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats Bar ──────────────────────────────────────────────────────── -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-label">Total Chunks</div>
+    <div class="stat-value" id="stat-chunks">–</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-label">PDF Pages</div>
+    <div class="stat-value" id="stat-pages">–</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-label">Embed Model</div>
+    <div class="stat-value" style="font-size:.75rem; color: var(--purple);">nomic-embed-text-v1</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-label">LLM</div>
+    <div class="stat-value" style="font-size:.75rem; color: var(--green);">Groq · llama-3.1-8b-instant</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-label">Vector DB</div>
+    <div class="stat-value" style="font-size:.75rem; color: var(--blue);">ChromaDB · Local</div>
+  </div>
+</div>
+
+<!-- ── Main Layout ───────────────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- LEFT: Chunk Explorer -->
+  <aside class="chunks-panel">
+    <div class="panel-header">
+      <h2>📚 Chunk Explorer</h2>
+      <span class="count" id="chunk-count-label">0 chunks</span>
+    </div>
+    <div class="chunks-search">
+      <input type="text" id="chunk-search" placeholder="Search chunks…" oninput="filterChunks()" />
+    </div>
+    <div class="chunks-list" id="chunks-list">
+      <div style="text-align:center;padding:30px;color:var(--txt3);font-size:.8rem;">Loading chunks…</div>
+    </div>
+  </aside>
+
+  <!-- RIGHT: Query Interface -->
+  <main class="query-panel">
+    <div class="query-input-area">
+      <h2>🔎 Ask a Question</h2>
+      <div class="query-row">
+        <div class="query-input-wrap">
+          <textarea id="query-input" placeholder="e.g. What are the login requirements for VWO dashboard?" rows="3"></textarea>
+        </div>
+        <div class="query-controls">
+          <select class="topk-select" id="topk-select" onchange="document.getElementById('topk-label').textContent='k = '+this.value">
+            <option value="1">Top 1</option>
+            <option value="2">Top 2</option>
+            <option value="3" selected>Top 3</option>
+            <option value="4">Top 4</option>
+            <option value="5">Top 5</option>
+          </select>
+          <button class="btn-ask" id="btn-ask" onclick="submitQuery()">Ask →</button>
+          <button class="btn-clear" onclick="clearResults()">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-area" id="results-area">
+      <!-- Empty state -->
+      <div class="empty-state" id="empty-state">
+        <div class="big-icon">🧠</div>
+        <p>Type a question above and click <strong>Ask</strong>. The system will embed your query, search ChromaDB for the most relevant chunks, and generate a grounded answer using Groq.</p>
+        <div class="example-queries">
+          <div class="example-q" onclick="setQuery(this)">What are the login requirements for VWO dashboard?</div>
+          <div class="example-q" onclick="setQuery(this)">What SSO or authentication methods are supported?</div>
+          <div class="example-q" onclick="setQuery(this)">Describe the dashboard layout and its components.</div>
+          <div class="example-q" onclick="setQuery(this)">What are the security and compliance requirements?</div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────── */
+let allChunks = [];
+let lastResults = null;
+
+/* Load stats + chunks on page load */
+window.addEventListener('DOMContentLoaded', () => {
+  loadStats();
+  loadChunks();
+  document.getElementById('query-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) submitQuery();
+  });
+});
+
+async function loadStats() {
+  try {
+    const r = await fetch('/api/stats');
+    const d = await r.json();
+    const el = document.getElementById('db-badge');
+    el.innerHTML = `<span class="dot"></span>${d.chroma_count} vectors`;
+    el.className = 'badge badge-orange';
+    document.getElementById('pn-chroma-count').textContent = `${d.chroma_count} vectors`;
+  } catch(e) { /* ignore */ }
+}
+
+async function loadChunks() {
+  try {
+    const r = await fetch('/api/chunks');
+    allChunks = await r.json();
+    const pages = new Set(allChunks.map(c => c.page)).size;
+    document.getElementById('stat-chunks').innerHTML = `${allChunks.length} <span>total</span>`;
+    document.getElementById('stat-pages').innerHTML = `${pages} <span>pages</span>`;
+    document.getElementById('chunk-count-label').textContent = `${allChunks.length} chunks`;
+    renderChunks(allChunks);
+  } catch(e) {
+    document.getElementById('chunks-list').innerHTML =
+      `<div style="color:var(--red);padding:20px;font-size:.8rem;">Failed to load chunks. Make sure ingest.py has been run.</div>`;
+  }
+}
+
+function renderChunks(chunks, retrievedMap = {}) {
+  const list = document.getElementById('chunks-list');
+  if (!chunks.length) {
+    list.innerHTML = `<div style="color:var(--txt3);padding:20px;text-align:center;font-size:.8rem;">No chunks match your search.</div>`;
+    return;
+  }
+
+  list.innerHTML = chunks.map(c => {
+    const ri = retrievedMap[c.id];
+    let rankClass = ri ? `retrieved rank-${ri.rank}` : '';
+    let rankBadge = ri ? `<span class="rank-badge rank-${ri.rank}-badge">#${ri.rank} Match</span>` : '';
+    let simBar = ri ? `
+      <div class="similarity-bar-wrap">
+        <div class="similarity-label">
+          <span>Cosine similarity</span>
+          <span>${(ri.similarity * 100).toFixed(1)}%</span>
+        </div>
+        <div class="similarity-bar-bg">
+          <div class="similarity-bar-fill rank-${ri.rank}-fill" style="width:${(ri.similarity*100).toFixed(1)}%"></div>
+        </div>
+      </div>` : '';
+
+    return `<div class="chunk-card ${rankClass}" id="card-${c.id}" onclick="toggleChunk(this)">
+      <div class="chunk-meta">
+        <span class="chunk-id">${c.id}</span>
+        <span class="page-badge">Page ${c.page}</span>
+        ${rankBadge}
+      </div>
+      ${simBar}
+      <div class="chunk-text">${escHtml(c.text)}</div>
+      <div class="chunk-footer">
+        <span>📝 ${c.word_count} words</span>
+        <span>🔤 ${c.char_count} chars</span>
+        <span>Chunk ${c.chunk_idx} of page</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleChunk(el) {
+  el.classList.toggle('expanded');
+}
+
+function filterChunks() {
+  const q = document.getElementById('chunk-search').value.toLowerCase();
+  const filtered = q ? allChunks.filter(c =>
+    c.text.toLowerCase().includes(q) ||
+    c.id.toLowerCase().includes(q) ||
+    String(c.page).includes(q)
+  ) : allChunks;
+  const ri = lastResults ? buildRetrievedMap(lastResults.retrieved_chunks) : {};
+  renderChunks(filtered, ri);
+}
+
+function buildRetrievedMap(chunks) {
+  const m = {};
+  chunks.forEach(c => { m[c.id] = c; });
+  return m;
+}
+
+function setQuery(el) {
+  document.getElementById('query-input').value = el.textContent;
+  document.getElementById('query-input').focus();
+}
+
+function clearResults() {
+  lastResults = null;
+  document.getElementById('results-area').innerHTML = getEmptyState();
+  renderChunks(allChunks, {});
+  resetPipeline();
+}
+
+function getEmptyState() {
+  return `<div class="empty-state" id="empty-state">
+    <div class="big-icon">🧠</div>
+    <p>Type a question above and click <strong>Ask</strong>. The system will embed your query, search ChromaDB for the most relevant chunks, and generate a grounded answer using Groq.</p>
+    <div class="example-queries">
+      <div class="example-q" onclick="setQuery(this)">What are the login requirements for VWO dashboard?</div>
+      <div class="example-q" onclick="setQuery(this)">What SSO or authentication methods are supported?</div>
+      <div class="example-q" onclick="setQuery(this)">Describe the dashboard layout and its components.</div>
+      <div class="example-q" onclick="setQuery(this)">What are the security and compliance requirements?</div>
+    </div>
+  </div>`;
+}
+
+/* ── Pipeline animation ─────────────────────────────────────────── */
+const QUERY_NODES = ['pn-q','pn-qembed','pn-search','pn-topk','pn-llm','pn-answer'];
+const QUERY_ARROWS = ['pa-1','pa-2','pa-3','pa-4','pa-5'];
+
+function resetPipeline() {
+  QUERY_NODES.forEach(id => { const n = document.getElementById(id); if(n){ n.classList.remove('active-node','done-node'); }});
+  QUERY_ARROWS.forEach(id => { const a = document.getElementById(id); if(a){ a.classList.remove('active'); }});
+}
+
+async function animatePipeline(stepIndex) {
+  resetPipeline();
+  for (let i = 0; i <= stepIndex; i++) {
+    const node = document.getElementById(QUERY_NODES[i]);
+    if (node) {
+      if (i < stepIndex) {
+        node.classList.add('done-node');
+        if (QUERY_ARROWS[i]) { const a = document.getElementById(QUERY_ARROWS[i]); if(a) a.classList.add('active'); }
+      } else {
+        node.classList.add('active-node');
+        if (QUERY_ARROWS[i]) { const a = document.getElementById(QUERY_ARROWS[i]); if(a) a.classList.add('active'); }
+      }
+    }
+    await delay(220);
+  }
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ── Loading steps ─────────────────────────────────────────────── */
+function showLoading(query) {
+  document.getElementById('btn-ask').disabled = true;
+  document.getElementById('results-area').innerHTML = `
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <div class="loading-steps">
+        <div class="loading-step active" id="ls-1"><span class="step-icon">🔢</span> Embedding your query with Nomic Embed…</div>
+        <div class="loading-step" id="ls-2"><span class="step-icon">🔍</span> Searching ChromaDB for similar chunks…</div>
+        <div class="loading-step" id="ls-3"><span class="step-icon">🤖</span> Generating answer with Groq llama-3.1-8b…</div>
+      </div>
+    </div>`;
+}
+
+async function updateLoadingStep(step) {
+  for (let i = 1; i < step; i++) {
+    const el = document.getElementById(`ls-${i}`);
+    if (el) { el.classList.remove('active'); el.classList.add('done'); el.querySelector('.step-icon').textContent = '✅'; }
+  }
+  const cur = document.getElementById(`ls-${step}`);
+  if (cur) cur.classList.add('active');
+  await animatePipeline(step - 1);
+}
+
+/* ── Main query function ─────────────────────────────────────────── */
+async function submitQuery() {
+  const query = document.getElementById('query-input').value.trim();
+  if (!query) { document.getElementById('query-input').focus(); return; }
+
+  const topK = parseInt(document.getElementById('topk-select').value);
+  showLoading(query);
+
+  await updateLoadingStep(1);
+  await delay(300);
+  await updateLoadingStep(2);
+  await delay(200);
+  await updateLoadingStep(3);
+
+  try {
+    const resp = await fetch('/api/query', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ query, top_k: topK })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Unknown error');
+
+    lastResults = data;
+    await animatePipeline(5); // fully done
+    renderResults(data);
+    highlightChunks(data.retrieved_chunks);
+  } catch(err) {
+    document.getElementById('results-area').innerHTML = `
+      <div style="background:rgba(248,113,113,.08);border:1px solid var(--red);border-radius:12px;padding:16px;color:var(--red);font-size:.82rem;">
+        ❌ Error: ${escHtml(err.message)}
+      </div>`;
+    resetPipeline();
+  } finally {
+    document.getElementById('btn-ask').disabled = false;
+  }
+}
+
+function highlightChunks(retrievedChunks) {
+  const ri = buildRetrievedMap(retrievedChunks);
+  renderChunks(allChunks, ri);
+
+  // Scroll to first retrieved chunk
+  const first = retrievedChunks[0];
+  if (first) {
+    setTimeout(() => {
+      const card = document.getElementById(`card-${first.id}`);
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 400);
+  }
+}
+
+function renderResults(data) {
+  const t = data.timing;
+  const chunks = data.retrieved_chunks;
+  const rankColors = ['r1','r2','r3','r4','r5'];
+
+  const retrievedHtml = chunks.map((c, i) => {
+    const rc = rankColors[i] || 'r3';
+    return `<div class="retrieved-item ${rc}">
+      <div class="ri-header">
+        <div class="ri-rank ${rc}">${c.rank}</div>
+        <span class="ri-id">${c.id}</span>
+        <span class="ri-id" style="color:var(--txt3);margin-left:4px;">Page ${c.page}</span>
+        <span class="ri-score ${rc}">${(c.similarity * 100).toFixed(1)}% match</span>
+      </div>
+      <div class="ri-text collapsed" id="ri-text-${i}">${escHtml(c.text)}</div>
+      <button class="ri-expand-btn" onclick="toggleRiText(${i}, this)">Show more ▾</button>
+    </div>`;
+  }).join('');
+
+  const flowHtml = buildFlowDiagram(chunks);
+
+  document.getElementById('results-area').innerHTML = `
+    <div class="answer-card">
+      <div class="answer-card-header">💬 Answer · Groq llama-3.1-8b-instant</div>
+      <div class="answer-text">${escHtml(data.answer)}</div>
+      <div class="timing-row">
+        <div class="timing-item">Embed: <span>${t.embed_ms}ms</span></div>
+        <div class="timing-item">Retrieve: <span>${t.retrieve_ms}ms</span></div>
+        <div class="timing-item">LLM: <span>${t.llm_ms}ms</span></div>
+        <div class="timing-item">Total: <span>${t.total_ms}ms</span></div>
+      </div>
+    </div>
+
+    <div class="flow-diagram">
+      ${flowHtml}
+    </div>
+
+    <div class="retrieved-section">
+      <h3>📌 Retrieved Chunks (${chunks.length})</h3>
+      <div class="retrieved-list">${retrievedHtml}</div>
+    </div>`;
+}
+
+function buildFlowDiagram(chunks) {
+  const rankColors = ['f-done','f-done','f-done'];
+  const chunkLabels = chunks.map((c, i) =>
+    `<div class="fn ${rankColors[i] || 'f-done'}">
+      <div class="fi">${['🥇','🥈','🥉'][i] || '📝'}</div>
+      <div class="fl">${c.id}</div>
+      <div class="fv">Page ${c.page} · ${(c.similarity*100).toFixed(0)}%</div>
+    </div>`
+  ).join('<span class="fa">|</span>');
+
+  return `<h3>🔁 Retrieval Flow — How Your Answer Was Built</h3>
+  <div class="flow-nodes" style="flex-wrap:wrap;gap:6px;align-items:center;">
+    <div class="fn f-done"><div class="fi">❓</div><div class="fl">Your Query</div></div>
+    <span class="fa f-active">→</span>
+    <div class="fn f-done"><div class="fi">🔢</div><div class="fl">Nomic Embed</div><div class="fv">768-dim vector</div></div>
+    <span class="fa f-active">→</span>
+    <div class="fn f-done"><div class="fi">💾</div><div class="fl">ChromaDB</div><div class="fv">Cosine search</div></div>
+    <span class="fa f-active">→</span>
+    <div style="display:flex;flex-direction:column;gap:4px;align-items:center;">
+      <div style="font-size:.6rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;">Top ${chunks.length} Matches</div>
+      <div style="display:flex;gap:4px;">${chunkLabels}</div>
+    </div>
+    <span class="fa f-active">→</span>
+    <div class="fn f-done"><div class="fi">🤖</div><div class="fl">Groq LLM</div><div class="fv">llama-3.1-8b</div></div>
+    <span class="fa f-active">→</span>
+    <div class="fn f-done"><div class="fi">💬</div><div class="fl">Answer</div></div>
+  </div>`;
+}
+
+function toggleRiText(idx, btn) {
+  const el = document.getElementById(`ri-text-${idx}`);
+  const collapsed = el.classList.toggle('collapsed');
+  btn.textContent = collapsed ? 'Show more ▾' : 'Show less ▴';
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+</script>
+</body>
+</html>
