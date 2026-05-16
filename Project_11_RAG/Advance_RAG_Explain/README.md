@@ -6,6 +6,27 @@ Built for **app.vwo.com** test case management. Includes a pre-generated dataset
 
 ---
 
+## Quick Start
+
+```bash
+# 1. Install dependencies
+cd Project_11_RAG/Advance_RAG_Explain
+pip install -r requirements.txt
+
+# 2. Add your Groq API key
+echo "GROQ_API_KEY=your_key_here" > .env
+echo "GROQ_MODEL=llama-3.1-8b-instant" >> .env
+
+# 3. Start the server
+python3 app.py
+```
+
+> **Note:** First startup downloads `BAAI/bge-large-en-v1.5` (~335 MB) and the cross-encoder (~22 MB) from HuggingFace. Subsequent starts are instant.
+
+Open **http://localhost:5012** in your browser — if you previously ingested data, the Explorer loads automatically. Otherwise, drag-drop `testcases_vwo.csv` to begin.
+
+---
+
 ## Architecture — 6-Stage Advanced RAG Pipeline
 
 ```
